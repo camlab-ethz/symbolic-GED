@@ -3,7 +3,7 @@ import csv
 import time
 import torch
 import torch.nn as nn
-from model_pde import GrammarVAE
+from model import GrammarVAE
 import lightning.pytorch as pl
 from collections import defaultdict
 from lightning.pytorch.loggers import Logger

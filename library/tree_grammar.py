@@ -28,7 +28,8 @@ __maintainer__ = 'Benjamin Paaßen'
 __email__  = 'benjamin.paassen@sydney.edu.au'
 
 import copy
-import tree_pde as tree_pde
+import tree as tree
+
 
 class TreeGrammar:
     """ A regular tree grammar, defined by an arity alphabet of terminal

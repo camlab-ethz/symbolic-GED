@@ -1,4 +1,3 @@
-# data_module.py
 import torch
 import h5py
 import pytorch_lightning as pl

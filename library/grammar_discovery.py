@@ -2,42 +2,6 @@ import torch
 from torch.autograd import Variable
 from nltk import CFG, Nonterminal
 
-# grammar = """
-# S -> S '+' T
-# S -> S '*' T
-# S -> S '/' T
-# S -> S '-' T
-# S -> T
-# T -> T '^' T
-# T -> '-' T    
-# T -> '(' S ')'
-# T -> 'sin(' S ')'
-# T -> 'cos(' S ')'
-# T -> 'u'
-# T -> 'u^2'
-# T -> 'u^3'
-# T -> 'x'
-# T -> 't'
-# T -> 'x^2'
-# T -> 't^2'
-# T -> 'x^3'
-# T -> 't^3'
-# T -> '(-x)'
-# T -> '(-t)'
-# T -> 'd/dx(u)'
-# T -> 'd/dt(u)'
-# T -> 'd2/dt2(u)'
-# T -> 'd2/dx2(u)'
-# T -> 'd3/dx3(u)'
-# T -> 'u*d/dx(u)'
-# T -> 'd/dx(u^2)'
-# T -> DIGITS '.' DIGITS
-# T -> DIGITS
-# DIGITS -> DIGIT DIGITS | DIGIT
-# DIGIT -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-# Nothing -> None
-# """
-
 
 grammar = """
 S -> S '+' T
