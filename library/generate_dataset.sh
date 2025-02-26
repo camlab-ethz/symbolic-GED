@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Configurable script for generating PDE datasets
+# Configurable script for generating triplets of operator,mf-solution, forcing function - datasets
 
 # ======= CONFIGURATION SETTINGS =======
 # Edit these values to change the dataset generation

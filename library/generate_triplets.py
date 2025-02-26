@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Generate triplets (solution, operator, forcing term) for differential equations
-based on configurations in a YAML file.
-"""
-
 import sys
 import csv
 import argparse
@@ -11,7 +5,7 @@ import random
 import sympy as sp
 from tqdm import tqdm
 
-# Import configuration helper functions
+
 from config_dt_helpers import (
     load_config,
     get_spatial_vars,
@@ -37,22 +31,22 @@ def generate_manufactured_solution_string(operator_type, dims, solution_type=Non
     Returns:
         str: Manufactured solution string
     """
-    # If parameters not provided, initialize as empty dict
+   
     if parameters is None:
         parameters = {}
     
-    # If solution_type is not specified, choose a default based on operator
+
     if solution_type is None:
         if config is not None:
-            # Get a random solution option from config
+            
             solution_option = get_random_solution_option(operator_type, config)
             solution_type = solution_option.get("type")
-            # Update parameters with the option settings
+            
             for key, value in solution_option.items():
                 if key != "type":
                     parameters[key] = value
         else:
-            # Use defaults from the original code
+           
             if operator_type in ['wave', 'navier-stokes']:
                 solution_type = 'sine_cosine'
             elif operator_type in ['diffusion', 'reaction-diffusion']:
@@ -73,7 +67,7 @@ def generate_manufactured_solution_string(operator_type, dims, solution_type=Non
     
     if solution_type == 'sine_cosine':
         if dims == 1:
-            # For wave equation, use sqrt(c2) in the time component if provided
+           
             if operator_type == 'wave' and 'c2' in parameters and parameters.get('use_sqrt_c2', True):
                 c2 = parameters['c2']
                 return f"sin(x)*cos(sqrt({c2})*t)"
@@ -81,7 +75,7 @@ def generate_manufactured_solution_string(operator_type, dims, solution_type=Non
                 return "sin(x)*cos(t)"
         else:
             space = "*".join(f"sin({var})" for var in spatial_vars)
-            # For wave equation, use sqrt(c2) in the time component if provided
+            
             if operator_type == 'wave' and 'c2' in parameters and parameters.get('use_sqrt_c2', True):
                 c2 = parameters['c2']
                 return f"{space}*cos(sqrt({c2})*t)"
@@ -89,7 +83,7 @@ def generate_manufactured_solution_string(operator_type, dims, solution_type=Non
                 return f"{space}*cos(t)"
     
     elif solution_type == 'exp_decay':
-        # For diffusion, use the diffusion coefficient if provided
+        
         decay_rate = parameters.get('decay_rate', 1)
         if dims == 1:
             return f"exp(-{decay_rate}*t)*sin(x)"
@@ -98,22 +92,22 @@ def generate_manufactured_solution_string(operator_type, dims, solution_type=Non
             return f"exp(-{decay_rate}*t)*{space}"
     
     elif solution_type == 'tanh':
-        # For Burgers equation, use the advection velocity if provided
+        
         velocity = parameters.get('velocity', 1)
         if dims == 1:
             return f"tanh(x-{velocity}*t)"
         else:
-            # For higher dims, use tanh of a linear combination
+           
             vars_str = "+".join(var for var in spatial_vars)
             return f"tanh({vars_str}-{velocity}*t)"
     
     elif solution_type == 'traveling_wave':
-        # For advection, use the advection velocity if provided
+        
         velocity = parameters.get('velocity', 1)
         if dims == 1:
             return f"sin(x-{velocity}*t)"
         else:
-            # Simple traveling wave
+
             vars_str = "+".join(var for var in spatial_vars)
             return f"sin({vars_str}-{velocity}*t)"
     
@@ -127,7 +121,7 @@ def generate_manufactured_solution_string(operator_type, dims, solution_type=Non
         if dims == 1:
             return "x**2*(1-x)**2"
         else:
-            # Product of quadratics for each dimension
+
             return "*".join(f"{var}**2*(1-{var})**2" for var in spatial_vars)
     
     elif solution_type == 'gaussian':
@@ -288,7 +282,7 @@ def generate_operator_string(operator_type, dims, parameters, formatted=True):
                 laplace = " + ".join(f"diff(u, {var}, 2)" for var in spatial_vars)
                 return f"{coef_val}*({laplace})"
     
-    # Default fallback
+
     return f"L[u] for {operator_type} in {dims}D"
 
 def compute_forcing_term(u_str, L_sympy_str, dims):
@@ -314,7 +308,7 @@ def compute_forcing_term(u_str, L_sympy_str, dims):
         # Parse the manufactured solution
         u_expr = sp.sympify(u_str, locals=local_dict)
         
-        # For the operator, treat 'u' as a function of the variables
+
         u = sp.Function('u')(*vars_list)
         
         # Parse the operator string with u as a function
@@ -325,7 +319,7 @@ def compute_forcing_term(u_str, L_sympy_str, dims):
         # Substitute u_expr for u in L_expr
         f_expr = L_expr.subs({u: u_expr})
         
-        # More aggressive simplification
+
         try:
             # Expand and collect terms
             f_expr = sp.expand(f_expr)
@@ -378,15 +372,15 @@ def generate_triplet(operator_type, dims, solution_type=None, solution_params=No
         # Find the matching solution option in config
         solution_params = get_solution_params(operator_type, solution_type, config)
     
-    # Initialize parameters dictionary
+
     parameters = {}
     
-    # Get coefficient(s) for this operator
+    # Get coefficients
     if operator_type == 'reaction-diffusion':
         D_val, k_val = get_coefficient(operator_type, config)
         parameters['D'] = D_val
         parameters['k'] = k_val
-        # Use reaction rate as decay rate for exp_decay solutions
+
         if solution_type == 'exp_decay':
             parameters['decay_rate'] = k_val * solution_params.get("decay_rate_factor", 1.0)
     else:
@@ -395,12 +389,12 @@ def generate_triplet(operator_type, dims, solution_type=None, solution_params=No
         # Set parameters based on operator type
         if operator_type == 'diffusion':
             parameters['D'] = coef
-            # For exp_decay solutions, use diffusion coefficient as decay rate
+
             if solution_type == 'exp_decay':
                 parameters['decay_rate'] = coef * solution_params.get("decay_rate_factor", 1.0)
         elif operator_type == 'wave':
             parameters['c2'] = coef
-            # Pass the use_sqrt_c2 parameter for sine_cosine solutions
+
             parameters['use_sqrt_c2'] = solution_params.get("use_sqrt_c2", True)
         elif operator_type == 'burgers':
             parameters['nu'] = coef
@@ -423,7 +417,7 @@ def generate_triplet(operator_type, dims, solution_type=None, solution_params=No
     # Generate the manufactured solution
     u_str = generate_manufactured_solution_string(operator_type, dims, solution_type, parameters)
     
-    # Generate the operator string (formatted for readability)
+    # Generate the operator string (format for gramamr)
     L_formatted = generate_operator_string(operator_type, dims, parameters, True)
     
     # Generate the sympy-compatible operator string for computation
@@ -455,7 +449,7 @@ def generate_comprehensive_dataset(output_csv='comprehensive_triplets.csv', dims
     rows = []
     headers = ['operator_type', 'spatial_dimension', 'solution_type', 'manufactured_solution_u', 'operator_L', 'forcing_term_f']
     
-    # Calculate total iterations for progress bar
+
     total_iterations = 0
     for op_type in operator_types:
         valid_dims = get_valid_dimensions(op_type, config)
@@ -464,7 +458,7 @@ def generate_comprehensive_dataset(output_csv='comprehensive_triplets.csv', dims
         solution_types = get_all_solution_types(op_type, config)
         total_iterations += len(valid_dims) * len(solution_types)
     
-    # Create progress bar
+
     with tqdm(total=total_iterations, desc="Generating comprehensive dataset") as pbar:
         for op_type in operator_types:
             valid_dims = get_valid_dimensions(op_type, config)
@@ -479,21 +473,21 @@ def generate_comprehensive_dataset(output_csv='comprehensive_triplets.csv', dims
             for dims in valid_dims:
                 for sol_type in solution_types:
                     try:
-                        # Update progress bar description
+
                         pbar.set_description(f"Processing {op_type}, dims={dims}, sol={sol_type}")
                         
-                        # Get solution parameters
+
                         sol_params = get_solution_params(op_type, sol_type, config)
                         
-                        # Generate the triplet
+
                         u_str, L_formatted, f_str = generate_triplet(op_type, dims, sol_type, sol_params, config)
                         
-                        # Add to results
+
                         rows.append([op_type, dims, sol_type, u_str, L_formatted, f_str])
                     except Exception as e:
                         print(f"Error generating {op_type}, dims={dims}, sol={sol_type}: {e}", file=sys.stderr)
                     finally:
-                        # Update progress bar
+
                         pbar.update(1)
     
     # Save to CSV
@@ -531,55 +525,49 @@ def generate_random_dataset(output_csv='random_triplets.csv', num_per_operator=1
     rows = []
     headers = ['operator_type', 'spatial_dimension', 'solution_type', 'manufactured_solution_u', 'operator_L', 'forcing_term_f']
     
-    # Calculate total iterations for progress bar
+
     total_iterations = len(operators) * num_per_operator
-    
-    # Create progress bar
     with tqdm(total=total_iterations, desc="Generating random dataset") as pbar:
         for op_type in operators:
-            # Get valid dimensions for this operator
             valid_dims = get_valid_dimensions(op_type, config)
+
             if dimensions is not None:
-                valid_dims = list(set(dimensions).intersection(valid_dims))
-            
+                valid_dims = list(set(dimensions).intersection(valid_dims)) 
             if not valid_dims:
-                # Skip this operator if no valid dimensions
                 pbar.update(num_per_operator)
                 continue
-            
-            # Get valid solution types for this operator
+
             valid_sol_types = get_all_solution_types(op_type, config)
             if solution_types is not None:
                 valid_sol_types = list(set(solution_types).intersection(valid_sol_types))
             
             if not valid_sol_types:
-                # Skip this operator if no valid solution types
                 pbar.update(num_per_operator)
                 continue
             
             for i in range(num_per_operator):
                 try:
-                    # Randomly select dimension
+
                     dims = random.choice(valid_dims)
                     
-                    # Randomly select solution type
+
                     sol_type = random.choice(valid_sol_types)
                     
-                    # Get solution parameters
+
                     sol_params = get_solution_params(op_type, sol_type, config)
                     
-                    # Update progress bar description
+
                     pbar.set_description(f"Processing {op_type} ({i+1}/{num_per_operator}), dims={dims}, sol={sol_type}")
                     
-                    # Generate the triplet
+
                     u_str, L_formatted, f_str = generate_triplet(op_type, dims, sol_type, sol_params, config)
                     
-                    # Add to results
+
                     rows.append([op_type, dims, sol_type, u_str, L_formatted, f_str])
                 except Exception as e:
                     print(f"Error generating random triplet for {op_type}: {e}", file=sys.stderr)
                 finally:
-                    # Update progress bar
+
                     pbar.update(1)
     
     # Save to CSV

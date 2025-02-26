@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Helper functions for working with differential equation configuration.
-"""
-
 import random
 import sys
 import yaml
@@ -104,7 +99,7 @@ def get_coefficient(operator_type, config=None):
     coef_range = operator_info.get("coefficient_range", [0.1, 1.0])
     coef = round(random.uniform(coef_range[0], coef_range[1]), 3)
     
-    # Apply any transform specified
+
     transform = operator_info.get("coefficient_transform")
     if transform == "square":
         # For wave equation, c^2
@@ -195,55 +190,55 @@ def get_solution_params(operator_type, solution_type, config=None):
     # If not found, return a default option with just the type
     return {"type": solution_type}
 
-# Test function to verify configuration
-def test_config(config_file='config_dataset.yaml'):
-    """
-    Test loading and accessing the configuration.
+# # Test function to verify configuration
+# def test_config(config_file='config_dataset.yaml'):
+#     """
+#     Test loading and accessing the configuration.
     
-    Args:
-        config_file (str): Path to the YAML configuration file
-    """
-    try:
-        config = load_config(config_file)
+#     Args:
+#         config_file (str): Path to the YAML configuration file
+#     """
+#     try:
+#         config = load_config(config_file)
         
-        # Print all operator types
-        operator_types = get_all_operator_types(config)
-        print(f"Found operators: {', '.join(operator_types)}")
+#         # Print all operator types
+#         operator_types = get_all_operator_types(config)
+#         print(f"Found operators: {', '.join(operator_types)}")
         
-        # Test each operator
-        for op_type in operator_types:
-            print(f"\nOperator: {op_type}")
+#         # Test each operator
+#         for op_type in operator_types:
+#             print(f"\nOperator: {op_type}")
             
-            # Get valid dimensions
-            valid_dims = get_valid_dimensions(op_type, config)
-            print(f"  Valid dimensions: {valid_dims}")
+#             # Get valid dimensions
+#             valid_dims = get_valid_dimensions(op_type, config)
+#             print(f"  Valid dimensions: {valid_dims}")
             
-            # Get solution types
-            sol_types = get_all_solution_types(op_type, config)
-            print(f"  Solution types: {sol_types}")
+#             # Get solution types
+#             sol_types = get_all_solution_types(op_type, config)
+#             print(f"  Solution types: {sol_types}")
             
-            # Get a coefficient
-            if op_type == 'reaction-diffusion':
-                D_val, k_val = get_coefficient(op_type, config)
-                print(f"  Sample coefficients: D={D_val}, k={k_val}")
-            else:
-                coef = get_coefficient(op_type, config)
-                print(f"  Sample coefficient: {coef}")
+#             # Get a coefficient
+#             if op_type == 'reaction-diffusion':
+#                 D_val, k_val = get_coefficient(op_type, config)
+#                 print(f"  Sample coefficients: D={D_val}, k={k_val}")
+#             else:
+#                 coef = get_coefficient(op_type, config)
+#                 print(f"  Sample coefficient: {coef}")
             
-            # Get a random solution option
-            sol_option = get_random_solution_option(op_type, config)
-            print(f"  Random solution option: {sol_option}")
+#             # Get a random solution option
+#             sol_option = get_random_solution_option(op_type, config)
+#             print(f"  Random solution option: {sol_option}")
         
-        print("\nConfiguration test successful!")
+#         print("\nConfiguration test successful!")
         
-    except Exception as e:
-        print(f"Error testing configuration: {e}", file=sys.stderr)
-        return False
+#     except Exception as e:
+#         print(f"Error testing configuration: {e}", file=sys.stderr)
+#         return False
     
-    return True
+#     return True
 
 if __name__ == "__main__":
-    # If run directly, test the configuration
+
     import sys
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
