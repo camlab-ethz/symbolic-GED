@@ -1,0 +1,80 @@
+# Configuration for differential operators and their parameters
+operators:
+  diffusion:
+    valid_dims: [1]  # As per your original code
+    coefficient_range: [0.1, 1.0]
+    solution_options:
+      - type: exp_decay
+        decay_rate_factor: 1.0
+      - type: sine_cosine
+      - type: gaussian
+        sigma: 0.1
+
+  wave:
+    valid_dims: [1, 2]  # As per your original code
+    coefficient_range: [0.5, 2.0]
+    coefficient_transform: square  # c^2 for wave equation
+    solution_options:
+      - type: sine_cosine
+        use_sqrt_c2: true
+      - type: traveling_wave
+        velocity_factor: 1.0
+
+  burgers:
+    valid_dims: [1]
+    coefficient_range: [0.01, 0.1]
+    solution_options:
+      - type: tanh
+        velocity: 1.0
+      - type: sine_cosine
+
+  reaction-diffusion:
+    valid_dims: [1, 2, 3]
+    d_coefficient_range: [0.1, 1.0]
+    k_coefficient_range: [0.1, 1.0]
+    solution_options:
+      - type: exp_decay
+        decay_rate_factor: 1.0
+      - type: sine_cosine
+
+  navier-stokes:
+    valid_dims: [2, 3]
+    coefficient_range: [0.01, 0.1]
+    solution_options:
+      - type: sine_cosine
+
+  advection:
+    valid_dims: [1, 2, 3]
+    coefficient_range: [0.5, 2.0]
+    solution_options:
+      - type: traveling_wave
+        velocity_factor: 1.0
+      - type: sine_cosine
+
+  helmholtz:
+    valid_dims: [1, 2, 3]
+    coefficient_range: [1.0, 5.0]
+    solution_options:
+      - type: sinusoidal
+
+  biharmonic:
+    valid_dims: [1, 2]
+    coefficient_range: [0.01, 0.1]
+    solution_options:
+      - type: polynomial
+      - type: sine_cosine
+
+  laplacian:
+    valid_dims: [1, 2, 3]
+    coefficient_range: [0.5, 2.0]
+    solution_options:
+      - type: sinusoidal
+      - type: polynomial
+      - type: gaussian
+        sigma: 0.1
+
+  curl:
+    valid_dims: [2, 3]
+    coefficient_range: [0.5, 1.5]
+    solution_options:
+      - type: sine_cosine
