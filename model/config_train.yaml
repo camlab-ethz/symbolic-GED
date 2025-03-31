@@ -1,0 +1,44 @@
+data:
+  data_path: '../library/operator_L-36len-1000.h5'
+  validation_split: 0.1
+
+training:
+  batch_size: 20
+  epochs: 1000
+  learning_rate: 0.0001
+  clip: 5.0
+  early_stopping_patience: 20
+  tightness: 0.1
+  monitor_metric: "val_loss"
+  monitor_accuracy_metric: "val/epoch_total_sequence_accuracy"
+  device: "gpu"
+  accelerator: "gpu"
+  num_workers: 3
+
+model:
+  encoder:
+    hidden_size: 256
+    conv_sizes: [64, 128, 256]
+    kernel_sizes: [2, 3, 4]
+    use_batch_norm: true
+    dropout: 0.1
+  
+  decoder:
+    mode: "positional"  # or "autoregressive"
+    hidden_size: 501
+    num_layers: 2
+    use_layer_norm: false
+    dropout: 0.1
+    rnn_type: 'gru'
+  
+  shared:
+    z_dim: 74
+    max_length: 36
+    output_size: 74
+
+saving:
+  base_dir: "../runs/"
+  model_name: "operator_L-36len-1000"
+  checkpoint_pattern: "operator_L-36len-1000-{epoch:02d}-{val_loss:.2f}"
+  logs_dir: "logs"
+

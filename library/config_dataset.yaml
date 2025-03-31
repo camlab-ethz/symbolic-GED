@@ -1,80 +1,582 @@
-# Configuration for differential operators and their parameters
+# Comprehensive configuration for PDE dataset generation
+# This configuration includes all potential combinations of operators, solution types, and initial conditions
+
+# Global parameters
+global:
+  domain_length: 1.0
+  time_range: [0, 1.0]
+  random_seed: 42
+  
+  # Coefficient variation ranges (for random sampling)
+  coefficient_ranges:
+    wave_c2: [0.5, 2.5]        # Range for wave speed squared
+    diffusion_D: [0.01, 1.0]    # Range for diffusion coefficient
+    burgers_nu: [0.01, 0.1]     # Range for Burgers viscosity
+    inv_burgers: [0.0]     # Range for Burgers viscosity
+    advection_v: [0.5, 0.5]     # Range for advection velocity
+    reaction_D: [0.1, 0.5]      # Range for reaction-diffusion diffusion coefficient
+    reaction_k: [-0.5, 0.5]     # Range for reaction-diffusion reaction rate
+    helmholtz_k: [0.5, 5.0]     # Range for Helmholtz parameter
+    biharmonic_alpha: [0.01, 0.1] # Range for biharmonic coefficient
+    navier_stokes_nu: [0.05, 0.2] # Range for Navier-Stokes viscosity
+  
+  # Polynomial variety
+  polynomial_degrees: [1, 2]  # Available polynomial degrees
+  polynomial_coefficients: [-1.0, -0.5, 0.5, 1.0]  # Coefficient options
+
+# Operators configuration
 operators:
-  diffusion:
-    valid_dims: [1]  # As per your original code
-    coefficient_range: [0.1, 1.0]
-    solution_options:
-      - type: exp_decay
-        decay_rate_factor: 1.0
-      - type: sine_cosine
-      - type: gaussian
-        sigma: 0.1
-
+  # ==========================================================================
+  # Wave equation: ∂²u/∂t² = c²∇²u
+  # ==========================================================================
   wave:
-    valid_dims: [1, 2]  # As per your original code
-    coefficient_range: [0.5, 2.0]
-    coefficient_transform: square  # c^2 for wave equation
-    solution_options:
+    valid_dimensions: [1, 2]
+    coefficient: 1.0  # c² value
+    # coefficient_options: [0.5, 0.75, 1.0, 1.5, 2.0, 2.5]  # Multiple options for c²
+    solutions:
       - type: sine_cosine
+        compatible_ic: [sine, gaussian, polynomial, step, tanh]
+        wave_form: traveling
+        direction: "+"
         use_sqrt_c2: true
-      - type: traveling_wave
-        velocity_factor: 1.0
-
-  burgers:
-    valid_dims: [1]
-    coefficient_range: [0.01, 0.1]
-    solution_options:
-      - type: tanh
-        velocity: 1.0
-      - type: sine_cosine
-
-  reaction-diffusion:
-    valid_dims: [1, 2, 3]
-    d_coefficient_range: [0.1, 1.0]
-    k_coefficient_range: [0.1, 1.0]
-    solution_options:
+        use_pi_wavenumbers: true
+        wavenumbers: [1, 1, 1]
+        
+      - type: standing_wave
+        compatible_ic: [sine, gaussian, polynomial]
+        wave_form: standing
+        use_sqrt_c2: true
+        use_pi_wavenumbers: true
+        wavenumbers: [1, 1, 1]
+        
+      - type: damped_wave
+        compatible_ic: [sine, gaussian, polynomial, step]
+        wave_form: damped
+        damping_coefficient: 0.1
+        use_sqrt_c2: true
+        use_pi_wavenumbers: true
+        wavenumbers: [1, 1, 1]
+        
+      - type: superposition
+        compatible_ic: [sine]
+        wave_form: superposition
+        superposition_type: standing
+        modes: [1, 2, 3]
+        amplitudes: [1.0, 0.5, 0.25]
+        use_sqrt_c2: true
+  
+  # ==========================================================================
+  # Diffusion equation: ∂u/∂t = D∇²u
+  # ==========================================================================
+  diffusion:
+    valid_dimensions: [1, 2]
+    coefficient: 0.5  # D value
+    # coefficient_options: [0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0]  # Multiple options for D
+    solutions:
       - type: exp_decay
+        compatible_ic: [sine, gaussian, polynomial, step, tanh]
+        use_eigenvalue_decay: true
         decay_rate_factor: 1.0
-      - type: sine_cosine
-
-  navier-stokes:
-    valid_dims: [2, 3]
-    coefficient_range: [0.01, 0.1]
-    solution_options:
-      - type: sine_cosine
-
-  advection:
-    valid_dims: [1, 2, 3]
-    coefficient_range: [0.5, 2.0]
-    solution_options:
-      - type: traveling_wave
-        velocity_factor: 1.0
-      - type: sine_cosine
-
-  helmholtz:
-    valid_dims: [1, 2, 3]
-    coefficient_range: [1.0, 5.0]
-    solution_options:
-      - type: sinusoidal
-
-  biharmonic:
-    valid_dims: [1, 2]
-    coefficient_range: [0.01, 0.1]
-    solution_options:
-      - type: polynomial
-      - type: sine_cosine
-
-  laplacian:
-    valid_dims: [1, 2, 3]
-    coefficient_range: [0.5, 2.0]
-    solution_options:
-      - type: sinusoidal
-      - type: polynomial
-      - type: gaussian
+        wavenumbers: [1, 1, 1]
+        use_pi_wavenumbers: true
+      
+      - type: gaussian_decay
+        compatible_ic: [gaussian]
         sigma: 0.1
+        centers: [0.5, 0.5, 0.5]
+        
+      - type: polynomial_decay
+        compatible_ic: [polynomial, sine]
+        poly_degree: [1, 2, 3]
+        coefficient_templates:
+          - "a*x^2*(1-x)^2"
+          - "a*x^2*(1-x)^2 + b*x^3*(1-x)"
+          - "a*x^2*y^2*(1-x)*(1-y)"
+          - "a*x^3*y*(1-x)*(1-y)^2"
+        coefficient_ranges:
+          a: [0.5, 2.0]
+          b: [-1.0, 1.0]
+        
+      - type: transient
+        compatible_ic: [step, tanh, sine]
+        width: 0.1
+        centers: [0.5, 0.5, 0.5]
+  
+  # ==========================================================================
+  # Burgers equation: ∂u/∂t + u∂u/∂x = ν∂²u/∂x²
+  # ==========================================================================
+  burgers:
+    valid_dimensions: [1]
+    coefficient: 0.05  # ν value
+    # coefficient_options: [0.01, 0.02, 0.05, 0.1, 0.15, 0.2]  # Multiple options for ν
+    solutions:
+      - type: tanh
+        compatible_ic: [tanh, step, sine]
+        use_shock_solution: true
+        shock_speed: 1.0
+        shock_width: 0.1
+        width: 0.1
+        centers: [0.5, 0.5]
+        
+      - type: traveling_wave
+        compatible_ic: [sine, gaussian, polynomial]
+        velocity: 1.0
+        velocity_factor: 1.0
+        
+      - type: decaying_shock
+        compatible_ic: [tanh, step]
+        use_shock_solution: true
+        shock_speed: 0.5
+        shock_width: 0.2
+        width: 0.2
+        centers: [0.5, 0.5]
+  # ==========================================================================
+  # Inviscid Burgers equation: ∂u/∂t + u∂u/∂x = 0
+  # ==========================================================================
+  inv_burgers:
+    valid_dimensions: [1]
+    coefficient: 0.0  # ν value
+    # coefficient_options: [0.01, 0.02, 0.05, 0.1, 0.15, 0.2]  # Multiple options for ν
+    solutions:
+      - type: tanh
+        compatible_ic: [tanh, step, sine]
+        use_shock_solution: true
+        shock_speed: 1.0
+        shock_width: 0.1
+        width: 0.1
+        centers: [0.5, 0.5]
+        
+      - type: traveling_wave
+        compatible_ic: [sine, gaussian, polynomial]
+        velocity: 1.0
+        velocity_factor: 1.0
+        
+      - type: decaying_shock
+        compatible_ic: [tanh, step]
+        use_shock_solution: true
+        shock_speed: 0.5
+        shock_width: 0.2
+        width: 0.2
+        centers: [0.5, 0.5]
+  
+  
+  # ==========================================================================
+  # Advection equation: ∂u/∂t + v∇u = 0
+  # ==========================================================================
+  advection:
+    valid_dimensions: [1, 2]
+    coefficient: 1.0  # velocity value
+    solutions:
+      - type: traveling_wave
+        compatible_ic: [sine, gaussian, polynomial, step, tanh]
+        velocity: 1.0
+        velocity_factor: 1.0
+        
+      - type: packet
+        compatible_ic: [gaussian, sine]
+        velocity: 0.5
+        velocity_factor: 1.0
+        sigma: 0.1
+        centers: [0.5, 0.5, 0.5]
+  
+  # ==========================================================================
+  # Reaction-Diffusion equation: ∂u/∂t = D∇²u + ku
+  # ==========================================================================
+  # reaction_diffusion:
+  #   valid_dimensions: [1, 2]
+  #   coefficient: [0.5, 0.5]  # [D, k] values
+  #   coefficient_pairs:
+  #     - [0.1, 0.1]   # [D, k] pair - slow diffusion, slow reaction
+  #     - [0.1, 1.0]   # slow diffusion, fast reaction
+  #     - [0.5, 0.5]   # medium diffusion, medium reaction
+  #     - [1.0, 0.1]   # fast diffusion, slow reaction
+  #     - [1.0, -0.5]  # fast diffusion, decay reaction
+  #     - [0.5, -1.0]  # medium diffusion, strong decay reaction
+  #   solutions:
+  #     - type: exp_decay
+  #       compatible_ic: [sine, gaussian, polynomial]
+  #       use_eigenvalue_decay: true
+  #       decay_rate_factor: 1.0
+  #       wavenumbers: [1, 1, 1]
+  #       use_pi_wavenumbers: true
+        
+  #     - type: pattern_formation
+  #       compatible_ic: [sine, gaussian, step]
+  #       D: 0.5
+  #       k: 0.5
+        
+  #     - type: growth_decay
+  #       compatible_ic: [polynomial, gaussian, sine]
+  #       D: 0.5
+  #       k: -0.5  # Negative k for growth
+  
+ 
+  # ==========================================================================
+  # Laplacian equation: ∇²u = 0 (time-independent)
+  # ==========================================================================
+  laplacian:
+    valid_dimensions: [1, 2]
+    coefficient: 1.0
+    solutions:
+      # Laplacian solutions (zero forcing)
+      - type: harmonic_linear
+        equation_type: laplacian
+        compatible_ic: [polynomial]
+        coefficient: 1.0
+        # 1D: a*x, 2D: x^2-y^2
+        
+      - type: harmonic_sine
+        equation_type: laplacian
+        compatible_ic: [sine]
+        wavenumbers: [1, 1]
+        use_pi_wavenumbers: true
+        # 2D: sin(kx)*sinh(ky)
+      
+      # Poisson solutions (non-zero forcing)
+      - type: poisson_quadratic
+        equation_type: poisson
+        compatible_ic: [polynomial]
+        coefficient: 1.0
+        # 1D: a*x^2, 2D: a*(x^2+y^2)
+        
+      - type: poisson_sine
+        equation_type: poisson
+        compatible_ic: [sine]
+        wavenumbers: [1, 1]
+        use_pi_wavenumbers: true
+        # Sine functions with predictable forcing
 
-  curl:
-    valid_dims: [2, 3]
-    coefficient_range: [0.5, 1.5]
-    solution_options:
-      - type: sine_cosine
+  # ==========================================================================
+  # Allen-Cahn equation: ∂u/∂t = ε²∇²u + u - u³
+  # ==========================================================================
+  # Allen-Cahn equation
+  allen_cahn:
+    valid_dimensions: [2]
+    coefficient: 1.0  # ε² value
+    coefficient_range: [0.01, 1.0]  # Range for ε²
+    solutions:
+      - type: exp_decay
+        compatible_ic: [sine, gaussian, polynomial]
+        use_eigenvalue_decay: true
+        decay_rate_factor: 1.0
+        wavenumbers: [1, 1, 1]
+        use_pi_wavenumbers: true
+      
+      - type: gaussian_decay
+        compatible_ic: [gaussian]
+        sigma: 0.1
+        centers: [0.5, 0.5, 0.5]
+        
+      - type: polynomial_decay
+        compatible_ic: [polynomial, sine]
+        poly_degree: [1, 2, 3]
+        coefficient_templates:
+          - "a*x^2*(1-x)^2"
+          - "a*x^2*(1-x)^2 + b*x^3*(1-x)"
+          - "a*x^2*y^2*(1-x)*(1-y)"
+          - "a*x^3*y*(1-x)*(1-y)^2"
+        coefficient_ranges:
+          a: [0.5, 2.0]
+          b: [-1.0, 1.0]
+        
+      - type: transient
+        compatible_ic: [step, tanh, sine]
+        width: 0.1
+        centers: [0.5, 0.5, 0.5]
+        
+      # Add these new solution types
+      - type: traveling_wave
+        compatible_ic: [tanh, step]
+        velocity: 0.5
+        width: 2.0
+        amplitude: 1.0
+        
+      - type: standing_pattern
+        compatible_ic: [tanh, step]
+        width: 2.0
+        amplitude: 1.0
+        
+      - type: growth_decay
+        compatible_ic: [sine, polynomial]
+        wavenumber: 1
+        amplitude: 0.1
+        
+      - type: pattern_formation
+        compatible_ic: [sine, polynomial]
+        amplitude: 0.1
+  # Ginzburg-Landau equation
+  ginzburg_landau:
+    valid_dimensions: [2]
+    d_coefficient_range: [0.1, 1.0]  # Range for diffusion coefficient
+    alpha_coefficient_range: [0.1, 2.0]  # Range for α
+    beta_coefficient_range: [0.1, 2.0]  # Range for β
+    coefficient_pairs:
+      - [0.1, 0.1]   # [α, β] pair
+      - [0.5, 1.0]
+      - [1.0, 1.0]   # Standard case identical to Allen-Cahn
+      - [1.5, 0.5]
+    solutions:
+      - type: exp_decay
+        compatible_ic: [sine, gaussian, polynomial]
+        use_eigenvalue_decay: true
+        decay_rate_factor: 1.0
+        wavenumbers: [1, 1, 1]
+        use_pi_wavenumbers: true
+      
+      - type: gaussian_decay
+        compatible_ic: [gaussian]
+        sigma: 0.1
+        centers: [0.5, 0.5, 0.5]
+        
+      - type: polynomial_decay
+        compatible_ic: [polynomial, sine]
+        poly_degree: [1, 2, 3]
+        coefficient_templates:
+          - "a*x^2*(1-x)^2"
+          - "a*x^2*(1-x)^2 + b*x^3*(1-x)"
+          - "a*x^2*y^2*(1-x)*(1-y)"
+          - "a*x^3*y*(1-x)*(1-y)^2"
+        coefficient_ranges:
+          a: [0.5, 2.0]
+          b: [-1.0, 1.0]
+        
+      - type: transient
+        compatible_ic: [step, tanh, sine]
+        width: 0.1
+        centers: [0.5, 0.5, 0.5]
+        
+      # Add these new solution types
+      - type: traveling_front
+        compatible_ic: [tanh, step]
+        velocity: 0.5
+        width: 2.0
+        amplitude_factor: 1.0
+        
+      - type: pattern_formation
+        compatible_ic: [sine, polynomial]
+        amplitude: 0.1
+        
+      - type: localized_structure
+        compatible_ic: [gaussian]
+        sigma: 0.2
+        centers: [0.5, 0.5, 0.5]
+        amplitude: 0.8
+        time_factor: 0.2
+    
+  fisher_kpp:
+    valid_dimensions: [1, 2]
+    # Coefficient: [D, r] where D is the diffusion coefficient and r is the growth rate
+    coefficient: [0.5, 1.0]
+    coefficient_pairs:
+      - [0.1, 1.0]   # Slow diffusion, standard growth
+      - [0.5, 1.0]   # Medium diffusion, standard growth
+      - [1.0, 2.0]   # Fast diffusion, high growth
+    solutions:
+      - type: logistic_front
+        compatible_ic: [step, tanh, gaussian]
+        # A traveling front emerging from logistic growth dynamics
+        wave_speed: 1.0
+        inflection_point: 0.5
+      - type: traveling_wave
+        compatible_ic: [sine, gaussian, polynomial]
+        velocity: 1.0
+        velocity_factor: 1.0
+
+  convection_diffusion:
+    valid_dimensions: [1]
+    # Coefficient: [D, v] where D is the diffusion coefficient and v is the convection (advection) velocity
+    coefficient: [0.5, 1.0]
+    coefficient_pairs:
+      - [0.1, 0.5]   # Slow diffusion, low advection
+      - [0.5, 1.0]   # Medium diffusion, standard advection
+      - [1.0, 2.0]   # High diffusion, strong advection
+    solutions:
+      - type: traveling_wave
+        compatible_ic: [sine, gaussian, polynomial, step, tanh]
+        velocity: 1.0
+        velocity_factor: 1.0
+      - type: decaying_packet
+        compatible_ic: [gaussian]
+        sigma: 0.1
+        decay_rate: 0.5
+        centers: [0.5, 0.5, 0.5]
+
+  fitzhugh_nagumo:
+    valid_dimensions: [1, 2]
+    # Coefficient: [D, parameter] where D is the diffusion coefficient and the second value may represent a scaling
+    # factor associated with the v-term (or be used to adjust excitability/recovery dynamics)
+    coefficient: [0.5, 1.0]
+    coefficient_pairs:
+      - [0.1, 0.5]
+      - [0.5, 1.0]
+      - [1.0, 1.5]
+    solutions:
+      - type: excitability_wave
+        compatible_ic: [sine, gaussian, polynomial]
+        threshold: 0.5
+        recovery_rate: 0.1
+        wave_speed: 1.0
+      - type: pulse
+        compatible_ic: [gaussian, tanh]
+        sigma: 0.1
+        amplitude: 1.0
+  sine_gordon:
+    valid_dimensions: [1]
+    # Lower coefficient range yields lower c² and therefore slower waves.
+    coefficient_range: [0.001, 0.05]    
+    domain_length: 1.0
+    solutions:
+      - solution_variant: traveling
+        compatible_ic: [sine]
+        use_eigenvalue_decay: true
+        decay_rate_factor: 1.0
+        # A lower range for the wavenumber will also help slow the oscillation
+        wavenumbers_range: [1, 2]
+        use_pi_wavenumbers: true
+        direction: "+"
+      - solution_variant: standing
+        compatible_ic: [sine,gaussian]
+        use_eigenvalue_decay: true
+        decay_rate_factor: 1.0
+        wavenumbers_range: [1, 2]
+        use_pi_wavenumbers: true
+
+  telegrapher:
+    valid_dimensions: [1]
+    # Lower range for c² so that sqrt(c²) (i.e. the wave speed) is lower.
+    coefficient_range: [0.001, 0.05]
+    # You might keep the damping coefficient (alpha) the same or adjust it as needed.
+    alpha_range: [0.3, 0.7]
+    domain_length: 1.0
+    solutions:
+      - solution_variant: traveling
+        compatible_ic: [sine,gaussian]
+        use_eigenvalue_decay: true
+        decay_rate_factor: 1.0
+        wavenumbers_range: [1, 2]
+        use_pi_wavenumbers: true
+        alpha_range: [0.3, 0.7]
+        c2_range: [0.001, 0.05]
+        direction: "+"
+
+  
+  black_scholes:
+    valid_dimensions: [1]
+    sigma_range: [0.1, 0.3]    # Volatility range
+    r_range: [0.01, 0.1]       # Risk-free rate range
+    p_range: [0.5, 2.0]        # Exponent for the asset price (x^p)
+    domain_length: 1.0
+    solutions:
+      - type: power_exponential
+        compatible_ic: [polynomial] 
+
+
+  tricomi:
+    valid_dimensions: [2]
+    lambda_range: [-2, -0.5]   # Range for λ (should be negative)
+    domain_length: 1.0          # (Optional: if you want to scale x)
+    solutions:
+      - type: exponential
+        compatible_ic: [polynomial]  # (or another appropriate IC type)
+        # No extra keys are needed; λ will be sampled from lambda_range.
+  helmholtz:
+    valid_dimensions: [1, 2]
+    coefficient: 1.0  # k value (wavenumber)
+    coefficient_range: [0.5, 3.0]  # Range for k
+    solutions:
+      - type: eigenfunction
+        compatible_ic: [sine]
+        wavenumbers: [1, 1]
+        use_pi_wavenumbers: true
+        
+        
+      - type: simple_harmonic
+        compatible_ic: [sine]
+        wavenumbers: [1, 1]
+        amplitudes: [1.0, 1.0]
+
+   
+
+
+
+  # ==========================================================================
+  # Biharmonic equation: ∂u/∂t + α∇⁴u = 0
+  # ==========================================================================
+  biharmonic:
+    valid_dimensions: [1, 2]
+    coefficient: 0.05  # α value
+    coefficient_range: [0.01, 0.1]
+    solutions:
+      - type: polynomial_decay
+        compatible_ic: [polynomial]
+        poly_degree: 4
+        time_dependent: true
+        coefficient_templates:
+          - "a*(x^2-1)^2"  # For 1D
+          - "a*((x^2-1)^2 + (y^2-1)^2)"  # For 2D
+        coefficient_ranges:
+          a: [0.1, 1.0]
+        
+      - type: gaussian_decay
+        compatible_ic: [gaussian]
+        sigma: 0.2
+        centers: [0.5, 0.5]
+        decay_rate: 0.5
+        
+      - type: sinusoidal_decay
+        compatible_ic: [sine]
+        wavenumbers: [1, 1]
+        use_pi_wavenumbers: true
+        decay_rate: 0.5
+  # ==========================================================================
+  # Navier-Stokes (simplified version for this dataset)
+  # ==========================================================================
+
+# Initial condition parameters
+initial_conditions:
+  sine:
+    parameters:
+      wavenumbers: [1, 1, 1]
+      use_pi_wavenumbers: true
+      domain_length: 1.0
+  
+  gaussian:
+    parameters:
+      sigma: 0.1
+      centers: [0.5, 0.5, 0.5]
+  
+  polynomial:
+    parameters:
+      poly_degree: [1, 2, 3]  # Multiple options for polynomial degree
+      coefficients: [-2.0, -1.0, -0.5, 0.5, 1.0, 2.0]  # Coefficient options
+      include_mixed_terms: true  # Include cross-terms in multivariate polynomials
+  
+  step:
+    parameters:
+      width: 0.1
+      centers: [0.5, 0.5, 0.5]
+  
+  tanh:
+    parameters:
+      width: 0.1
+      centers: [0.5, 0.5, 0.5]
+
+# Dataset generation parameters
+dataset:
+  comprehensive:
+    include_all_combinations: true
+    randomize_coefficients: true  # Use random coefficients within specified ranges
+  
+  random:
+    num_per_operator: 5
+    max_total: 100
+    coefficient_strategy: "diverse"  # Choose from "fixed", "diverse", or "random"
+    
+  # Additional parameter variation for generating diverse datasets
+  parameter_variation:
+    enable: true
+    vary_coefficients: true  # Vary PDE coefficients
+    vary_wavenumbers: true   # Vary spatial frequencies
+    vary_centers: true       # Vary centers of localized solutions
+    vary_widths: true        # Vary widths/spreads of solutions
+    vary_polynomial_terms: true  # Vary polynomial terms and coefficients

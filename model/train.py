@@ -1,4 +1,15 @@
 import os
+import sys
+
+# Get the directory of the current script (train.py)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Determine the project root (assumes train.py is inside the 'model' folder)
+project_root = os.path.abspath(os.path.join(script_dir, '..'))
+# Add the project root to sys.path if it isn't already
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import yaml
 import torch
 import lightning.pytorch as pl
@@ -6,7 +17,7 @@ from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping, Learning
 from lightning.pytorch.loggers import CSVLogger
 from pathlib import Path
 from typing import Dict, Optional
-from util import GrammarVAEModel
+from utils import GrammarVAEModel
 
 class ConfigurationError(Exception):
     """Custom exception for configuration errors"""
@@ -128,8 +139,8 @@ def train(config: Dict, resume_from_checkpoint: Optional[str] = None):
     return trainer, model
 
 if __name__ == '__main__':
-    # Load configuration
-    config_path = '/cluster/work/math/camlab-data/LoDE/configs/config-alltogether.yaml'  # Update with your config path
+    # Build the configuration path relative to this file's directory
+    config_path = os.path.join(script_dir, 'config_train.yaml')
     config = load_config(config_path)
     
     # Run training

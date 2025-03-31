@@ -16,15 +16,23 @@ class Decoder(nn.Module):
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.num_layers = num_layers
+
+        # Latent processing: transform latent z into initial hidden representation
         self.linear_in = nn.Linear(latent_rep_size, hidden_size)
         self.relu = nn.ReLU()
+
+        # RNN layer (GRU or RNN)
         if rnn_type.lower() == 'gru':
             self.rnn = nn.GRU(hidden_size, hidden_size, num_layers=num_layers, batch_first=True, dropout=dropout)
         elif rnn_type.lower() == 'rnn':
             self.rnn = nn.RNN(hidden_size, hidden_size, num_layers=num_layers, batch_first=True, dropout=dropout)
         else:
             raise ValueError(f"Unsupported RNN type: {rnn_type}. Use 'gru' or 'rnn'.")
+
+        # Output projection to vocabulary logits
         self.time_distributed_dense = nn.Linear(hidden_size, output_size)
+
+        # Configure mode-specific components
         if self.mode == 'autoregressive':
             self.embedding = nn.Embedding(output_size, hidden_size)
         
@@ -38,6 +46,8 @@ class Decoder(nn.Module):
             """
 
             batch_size, num_samples, latent_dim = z.shape
+            
+            # Reshape z to process all samples
             z_flat = z.view(-1, latent_dim)  # (batch_size * num_samples, latent_dim)
             
             if self.mode == 'positional':
@@ -46,6 +56,8 @@ class Decoder(nn.Module):
                 h_out, _ = self.rnn(h)
                 h_out = self.relu(h_out)
                 logits = self.time_distributed_dense(h_out)  # (batch_size * num_samples, max_length, output_size)
+                
+                # Reshape back to include sample dimension
                 logits = logits.view(batch_size, num_samples, self.max_length, -1)
                 
             return logits
@@ -61,6 +73,8 @@ class Decoder(nn.Module):
         """
 
         batch_size, num_samples, latent_dim = z.shape
+        
+        # Reshape z to process all samples
         z_flat = z.view(-1, latent_dim)  # (batch_size * num_samples, latent_dim)
         
         if self.mode == 'positional':
@@ -70,7 +84,7 @@ class Decoder(nn.Module):
             h_out = self.relu(h_out)
             logits = self.time_distributed_dense(h_out)  # (batch_size * num_samples, max_length, output_size)
             
-           
+            # Reshape back to include sample dimension
             logits = logits.view(batch_size, num_samples, self.max_length, -1)
             
         return logits

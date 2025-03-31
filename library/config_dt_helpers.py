@@ -50,6 +50,8 @@ def get_spatial_vars(dims):
     else:
         raise ValueError(f"Unsupported dimension: {dims}")
 
+
+
 def get_valid_dimensions(operator_type, config=None):
     """
     Returns valid dimensions for an operator from config.
@@ -68,18 +70,11 @@ def get_valid_dimensions(operator_type, config=None):
     operator_info = operators.get(operator_type, {})
     
     # Default to all dimensions if not specified in config
-    return operator_info.get("valid_dims", [1, 2, 3])
+    return operator_info.get("valid_dimensions", [1, 2, 3])
 
 def get_coefficient(operator_type, config=None):
     """
     Returns coefficient(s) for an operator based on config.
-    
-    Args:
-        operator_type (str): Type of the differential operator
-        config (dict, optional): Configuration dictionary. If None, loads from file.
-        
-    Returns:
-        float or tuple: The coefficient value(s)
     """
     if config is None:
         config = load_config()
@@ -87,26 +82,64 @@ def get_coefficient(operator_type, config=None):
     operators = config.get("operators", {})
     operator_info = operators.get(operator_type, {})
     
-    # Special case for reaction-diffusion with separate coefficient ranges
-    if operator_type == 'reaction-diffusion':
+    # # Check for coefficient_options list
+    # if "coefficient_options" in operator_info:
+    #     return random.choice(operator_info["coefficient_options"])
+    
+    # # Check for coefficient_pairs list (for reaction-diffusion)
+    # if "coefficient_pairs" in operator_info and operator_type == 'reaction-diffusion':
+    #     return random.choice(operator_info["coefficient_pairs"])
+    
+    if operator_type == 'reaction_diffusion':
         d_range = operator_info.get("d_coefficient_range", [0.1, 1.0])
         k_range = operator_info.get("k_coefficient_range", [0.1, 1.0])
-        D_val = round(random.uniform(d_range[0], d_range[1]), 3)
-        k_val = round(random.uniform(k_range[0], k_range[1]), 3)
+        D_val = random.uniform(float(d_range[0]), float(d_range[1]))
+        k_val = random.uniform(float(k_range[0]), float(k_range[1]))
         return D_val, k_val
-    
+    elif operator_type == 'ginzburg_landau':
+        print(f"DEBUG GL COEF: Starting get_coefficient for ginzburg_landau")
+        try:
+            # For the general case, return α and β values as a tuple
+            alpha_range = operator_info.get("alpha_coefficient_range", [0.1, 2.0])
+            beta_range = operator_info.get("beta_coefficient_range", [0.1, 2.0])
+            
+            print(f"DEBUG GL COEF: Alpha range: {alpha_range}, Beta range: {beta_range}")
+            
+            # Check if we should use coefficient pairs
+            if "coefficient_pairs" in operator_info and random.random() < 0.7:
+                pair = random.choice(operator_info["coefficient_pairs"])
+                print(f"DEBUG GL COEF: Selected coefficient pair: {pair}, type: {type(pair)}")
+                
+                if isinstance(pair, (list, tuple)) and len(pair) == 2:
+                    return_val = (float(pair[0]), float(pair[1]))
+                    print(f"DEBUG GL COEF: Returning tuple from pair: {return_val}, type: {type(return_val)}")
+                    return return_val
+                else:
+                    print(f"DEBUG GL COEF: Invalid pair format, using defaults")
+                    return (1.0, 1.0)
+            
+            # Otherwise generate random values from ranges
+            alpha_val = random.uniform(float(alpha_range[0]), float(alpha_range[1]))
+            beta_val = random.uniform(float(beta_range[0]), float(beta_range[1]))
+            return_val = (alpha_val, beta_val)
+            print(f"DEBUG GL COEF: Returning generated tuple: {return_val}, type: {type(return_val)}")
+            return return_val
+        except Exception as e:
+            import traceback
+            print(f"DEBUG GL COEF ERROR: {e}")
+            print(f"DEBUG GL COEF TRACEBACK: {traceback.format_exc()}")
+            return (1.0, 1.0)
     # Standard case for other operators
     coef_range = operator_info.get("coefficient_range", [0.1, 1.0])
-    coef = round(random.uniform(coef_range[0], coef_range[1]), 3)
+    coef = random.uniform(float(coef_range[0]), float(coef_range[1]))
+    return coef  # No squaring for wave here; handled in generate_triplet if needed
     
-
     transform = operator_info.get("coefficient_transform")
     if transform == "square":
         # For wave equation, c^2
         return round(coef**2, 3)
     
     return coef
-
 def get_random_solution_option(operator_type, config=None):
     """
     Returns a randomly selected solution option for an operator.
@@ -123,9 +156,9 @@ def get_random_solution_option(operator_type, config=None):
     
     operators = config.get("operators", {})
     operator_info = operators.get(operator_type, {})
-    solution_options = operator_info.get("solution_options", [{"type": "sine_cosine"}])
+    solutions = operator_info.get("solutions", [{"type": "sine_cosine"}])
     
-    return random.choice(solution_options)
+    return random.choice(solutions)
 
 def get_all_operator_types(config=None):
     """
@@ -159,9 +192,9 @@ def get_all_solution_types(operator_type, config=None):
     
     operators = config.get("operators", {})
     operator_info = operators.get(operator_type, {})
-    solution_options = operator_info.get("solution_options", [])
+    solutions = operator_info.get("solutions", [])
     
-    return [option.get("type") for option in solution_options]
+    return [option.get("type") for option in solutions]
 
 def get_solution_params(operator_type, solution_type, config=None):
     """
@@ -180,62 +213,23 @@ def get_solution_params(operator_type, solution_type, config=None):
     
     operators = config.get("operators", {})
     operator_info = operators.get(operator_type, {})
-    solution_options = operator_info.get("solution_options", [])
+    solutions = operator_info.get("solutions", [])
     
     # Find the solution option with matching type
-    for option in solution_options:
+    for option in solutions:
         if option.get("type") == solution_type:
             return option
     
     # If not found, return a default option with just the type
     return {"type": solution_type}
 
-# # Test function to verify configuration
-# def test_config(config_file='config_dataset.yaml'):
-#     """
-#     Test loading and accessing the configuration.
-    
-#     Args:
-#         config_file (str): Path to the YAML configuration file
-#     """
-#     try:
-#         config = load_config(config_file)
-        
-#         # Print all operator types
-#         operator_types = get_all_operator_types(config)
-#         print(f"Found operators: {', '.join(operator_types)}")
-        
-#         # Test each operator
-#         for op_type in operator_types:
-#             print(f"\nOperator: {op_type}")
-            
-#             # Get valid dimensions
-#             valid_dims = get_valid_dimensions(op_type, config)
-#             print(f"  Valid dimensions: {valid_dims}")
-            
-#             # Get solution types
-#             sol_types = get_all_solution_types(op_type, config)
-#             print(f"  Solution types: {sol_types}")
-            
-#             # Get a coefficient
-#             if op_type == 'reaction-diffusion':
-#                 D_val, k_val = get_coefficient(op_type, config)
-#                 print(f"  Sample coefficients: D={D_val}, k={k_val}")
-#             else:
-#                 coef = get_coefficient(op_type, config)
-#                 print(f"  Sample coefficient: {coef}")
-            
-#             # Get a random solution option
-#             sol_option = get_random_solution_option(op_type, config)
-#             print(f"  Random solution option: {sol_option}")
-        
-#         print("\nConfiguration test successful!")
-        
-#     except Exception as e:
-#         print(f"Error testing configuration: {e}", file=sys.stderr)
-#         return False
-    
-#     return True
+def get_sample_range(param_dict, key, default_value):
+    """If key exists as a range [low, high] in param_dict, return a uniformly sampled value (rounded to 3 decimals)."""
+    if key in param_dict and isinstance(param_dict[key], list) and len(param_dict[key]) == 2:
+        low, high = param_dict[key]
+        return round(random.uniform(low, high), 3)
+    return default_value
+
 
 if __name__ == "__main__":
 
@@ -245,3 +239,4 @@ if __name__ == "__main__":
         test_config(config_file)
     else:
         test_config()
+

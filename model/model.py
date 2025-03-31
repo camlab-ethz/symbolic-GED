@@ -1,3 +1,5 @@
+
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -7,7 +9,7 @@ from nltk import Nonterminal
 from encoder import Encoder
 from decoder import Decoder
 from stack import Stack
-from grammar import GCFG, S, get_mask
+from library.grammar_discovery import GCFG, S, get_mask
 import sys
 
 class GrammarVAE(nn.Module):
