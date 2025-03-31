@@ -125,7 +125,7 @@ def apply_wave_operator(ic_expr, dims, parameters):
     parameters.setdefault('use_pi_wavenumbers', True)  # Changed to True per YAML
     c2 = round(parameters.get('c2', random.uniform(0.5, 1.0)), 3)  # YAML range [0.5, 1.0]
     c = f"sqrt({c2})" if parameters.get('use_sqrt_c2', True) else f"{c2}"
-    wave_form = parameters.get('wave_form', 'traveling')
+    wave_form = parameters.get('types', 'traveling')
     domain_length = parameters.get('domain_length', 1.0)
     spatial_vars = get_spatial_vars(dims)
     
@@ -1160,7 +1160,7 @@ def apply_sine_gordon_operator(ic_expr, dims, parameters):
         # Standing wave solution for small amplitude (linearized sin(u) ≈ u)
         return f"{amplitude}*cos({omega}*t)*sin({wavenumber}*{'pi*' if use_pi else ''}x)"
     
-    elif ic_type == 'kink':
+    elif ic_type == 'soliton':
         # Kink soliton solution
         width = parameters.get('width', 1.0)
         velocity = parameters.get('velocity', 0.0)

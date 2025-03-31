@@ -635,6 +635,7 @@ def generate_operator_string(operator_type, dims, parameters, formatted=True):
 # =============================================================================
 # Global set to track used operators
 USED_OPERATORS = set()
+USED_SOLUTIONS = set()
 
 def generate_triplet(operator_type, dims, solution_type=None, solution_params=None, config=None):
     """
@@ -884,33 +885,30 @@ def generate_triplet(operator_type, dims, solution_type=None, solution_params=No
         
         # Generate the operator string
         L_formatted = generate_operator_string(operator_type, dims, parameters, True)
-        
-        # Check for uniqueness
-        if L_formatted not in USED_OPERATORS:
+        u_str = generate_manufactured_solution_string(operator_type, dims, solution_type, parameters)
+        # Check for uniqueness of both operator and solution
+        if L_formatted not in USED_OPERATORS and u_str not in USED_SOLUTIONS:
             USED_OPERATORS.add(L_formatted)
-            break
-        
-        attempt += 1
+            USED_SOLUTIONS.add(u_str)
+            
+            # Generate the sympy-compatible operator string
+            L_sympy_str = generate_operator_string(operator_type, dims, parameters, False)
+            
+            # Compute the forcing term
+            f_str = compute_forcing_term(u_str, L_sympy_str, dims)
+            
+            # Simplify the solution string for more compact representation
+            u_str = sp.simplify(u_str)
+            # Round all numerical values to 3 decimal places
+            u_str = str(u_str)
+            u_str = re.sub(r'(\d+\.\d{3})\d+', r'\1', u_str)
+            
+            return u_str, L_formatted, f_str
+    
+    # If not unique, continue to next attempt
+    attempt += 1
     else:
         raise ValueError(f"Could not generate a unique operator for {operator_type} in {dims}D after {max_attempts} attempts")
-    
-    # Generate the manufactured solution
-    u_str = generate_manufactured_solution_string(operator_type, dims, solution_type, parameters)
-    
-
-    # Generate the sympy-compatible operator string for computation
-    L_sympy_str = generate_operator_string(operator_type, dims, parameters, False)
-    
-    # Compute the forcing term
-    f_str = compute_forcing_term(u_str, L_sympy_str, dims)
-
-    # Simplify the solution string for more compact representation
-    u_str = sp.simplify(u_str)
-    # Round all numerical values to 3 decimal places
-    u_str = str(u_str)
-    u_str = re.sub(r'(\d+\.\d{3})\d+', r'\1', u_str) 
-    
-    return u_str, L_formatted, f_str
 
 
 def get_enhanced_polynomial_params(params, config):

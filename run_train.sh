@@ -6,7 +6,7 @@
 #SBATCH --nodes=2                      # Number of nodes       
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=64G
-#SBATCH --gpus-per-node=1
+#SBATCH --gpus=rtx3090:1
 
 
 #SBATCH --time=1-00:00:00                  # Maximum execution time (1 hour)
