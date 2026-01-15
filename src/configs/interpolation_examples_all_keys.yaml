@@ -1,0 +1,54 @@
+csv_metadata: data/raw/pde_dataset_48000_fixed.csv
+out_dir: analysis_results/interpolation_examples_all_keys_48000
+device: cuda
+step: 0.05
+classify: true
+
+# The 4 models (update ckpt paths here if you change runs)
+models:
+  - name: grammar_beta2e4
+    ckpt: checkpoints_48000_fixed/grammar_vae/beta_2e-4_seed_42/best-epoch=411-val/seq_acc=0.9983.ckpt
+    tokenization: grammar
+
+  - name: grammar_beta1e2
+    ckpt: checkpoints_48000_fixed/grammar_vae/beta_0.01_seed_42/best-epoch=517-val/seq_acc=0.0755.ckpt
+    tokenization: grammar
+
+  - name: token_beta2e4
+    ckpt: checkpoints_48000_fixed/token_vae/beta_2e-4_seed_42/best-epoch=307-val/seq_acc=0.9992.ckpt
+    tokenization: token
+
+  - name: token_beta1e2
+    ckpt: checkpoints_48000_fixed/token_vae/beta_0.01_seed_42/best-epoch=136-val/seq_acc=0.0016.ckpt
+    tokenization: token
+
+# Cover-all runs:
+# - For each pair, the script enumerates all *common* keys across the two families
+#   (intersection over match_cols) and writes one subfolder per key.
+pairs:
+  # Requested
+  - name: wave_to_heat
+    family_a: wave
+    family_b: heat
+    match_cols: [dim, spatial_order]
+    cover_all_keys: true
+
+  - name: telegraph_to_wave
+    family_a: telegraph
+    family_b: wave
+    match_cols: [dim, spatial_order, temporal_order]
+    cover_all_keys: true
+
+  # Two physics-motivated extras (can remove if you want only the two requested)
+  - name: heat_to_allen_cahn
+    family_a: heat
+    family_b: allen_cahn
+    match_cols: [dim, spatial_order, temporal_order]
+    cover_all_keys: true
+
+  - name: wave_to_beam_plate
+    family_a: wave
+    family_b: beam_plate
+    match_cols: [dim]
+    cover_all_keys: true
+

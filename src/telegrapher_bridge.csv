@@ -1,0 +1,10 @@
+pde,family,dim,temporal_order,spatial_order,nonlinear,split,tau
+dtt(u) + 50.0*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,train_endpoints,0.02
+dtt(u) + 20.0*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,train_endpoints,0.05
+dtt(u) + 10.0*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,train_endpoints,0.1
+dtt(u) + 0.2*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,train_endpoints,5.0
+dtt(u) + 0.1*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,train_endpoints,10.0
+dtt(u) + 5.0*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,test_middle,0.2
+dtt(u) + 2.0*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,test_middle,0.5
+dtt(u) + 1.0*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,test_middle,1.0
+dtt(u) + 0.5*dt(u) - 1.0*dxx(u),telegraph,1,2,2,False,test_middle,2.0

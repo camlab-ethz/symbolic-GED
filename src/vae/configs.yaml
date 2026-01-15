@@ -1,0 +1,490 @@
+# Grammar-VAE Training Configurations
+# Switch between different architectures and hyperparameters easily
+
+# ============================================================
+# ORIGINAL KUSNER ET AL. (2017) - Grammar VAE Paper
+# ============================================================
+kusner_original:
+  description: "Original Grammar VAE architecture from Kusner et al. 2017"
+  
+  # Architecture
+  z_dim: 56
+  encoder_hidden: 18  # Results in [9, 9] channels (hidden//2 per layer)
+  encoder_conv_layers: 2
+  encoder_kernel: 9
+  decoder_hidden: 501
+  decoder_layers: 3
+  decoder_dropout: 0.0
+  
+  # Training
+  batch_size: 500
+  lr: 0.001
+  epochs: 100
+  
+  # VAE loss
+  beta: 1.0
+  kl_anneal_epochs: 10
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0  # Original paper didn't use free bits
+  
+  # Monitoring
+  early_stop_patience: 0
+  save_top_k: 3
+
+
+# ============================================================
+# ENHANCED ARCHITECTURE - Current Best
+# ============================================================
+enhanced_v1:
+  description: "Matched architecture with token VAE"
+  
+  # Architecture - MATCH TOKEN VAE
+  z_dim: 56
+  encoder_hidden: 128  # Match token VAE
+  encoder_conv_layers: 3
+  encoder_kernel: [3, 5, 7]  # Multi-scale
+  decoder_hidden: 80  # Match token VAE
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  
+  # Training
+  batch_size: 128
+  lr: 0.0005
+  epochs: 100
+  
+  # VAE loss - aggressive KL annealing
+  beta: 0.5
+  kl_anneal_epochs: 90
+  cyclical_beta: true
+  cycle_epochs: 100
+  free_bits: 0.5
+  
+  # Stability - ADD GRADIENT CLIPPING
+  gradient_clip_val: 1.0
+  gradient_clip_algorithm: 'norm'
+  
+  # Monitoring
+  early_stop_patience: 0
+  save_top_k: 5
+
+
+# ============================================================
+# KUSNER HYPERPARAMS + ENHANCED ARCHITECTURE
+# ============================================================
+kusner_hyperparams_enhanced_arch:
+  description: "Use Kusner's training recipe but keep enhanced architecture"
+  
+  # Architecture - keep enhanced
+  z_dim: 56
+  encoder_hidden: 256
+  encoder_conv_layers: 3
+  encoder_kernel: [3, 5, 7]
+  decoder_hidden: 384
+  decoder_layers: 3
+  decoder_dropout: 0.2
+  
+  # Training - use Kusner's settings
+  batch_size: 256  # Compromise between 128 and 500
+  lr: 0.001
+  epochs: 100
+  
+  # VAE loss - Kusner's approach
+  beta: 1.0
+  kl_anneal_epochs: 20
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.5  # Keep this for stability
+  
+  # Monitoring
+  early_stop_patience: 15
+  save_top_k: 3
+
+
+# ============================================================
+# MINIMAL - For debugging
+# ============================================================
+minimal:
+  description: "Small model for fast iteration and debugging"
+  
+  # Architecture
+  z_dim: 56
+  encoder_hidden: 64
+  encoder_conv_layers: 2
+  encoder_kernel: 3
+  decoder_hidden: 128
+  decoder_layers: 2
+  decoder_dropout: 0.1
+  
+  # Training
+  batch_size: 64
+  lr: 0.001
+  epochs: 20
+  
+  # VAE loss
+  beta: 1.0
+  kl_anneal_epochs: 5
+  cyclical_beta: false
+  cycle_epochs: 5
+  free_bits: 0.5
+  
+  # Monitoring
+  early_stop_patience: 0
+  save_top_k: 1
+
+
+# ============================================================
+# LARGE - Maximum capacity
+# ============================================================
+large:
+  description: "Large model for maximum performance"
+  
+  # Architecture
+  z_dim: 56
+  encoder_hidden: 512  # Progressive: 256→512→1024
+  encoder_conv_layers: 4
+  encoder_kernel: [3, 5, 7, 9]
+  decoder_hidden: 512
+  decoder_layers: 4
+  decoder_dropout: 0.3
+  
+  # Training
+  batch_size: 256
+  lr: 0.0003
+  epochs: 150
+  
+  # VAE loss
+  beta: 1.0
+  kl_anneal_epochs: 30
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 1.0
+  
+  # Monitoring
+  early_stop_patience: 20
+  save_top_k: 5
+
+
+# ============================================================
+# GODE (2025) - Grammar-Guided Optimization for Differential Equations
+# ============================================================
+gode_benchmark1:
+  description: "GODE architecture (2025) - Benchmark 1: Lorenz-like systems"
+  
+  # Architecture - from GODE paper
+  z_dim: 24  # Latent dimension for Lorenz systems
+  encoder_hidden: 128  # Will create progressive expansion
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 8, 9]  # Multi-scale kernels from paper
+  decoder_hidden: 80  # Hidden dimension for bidirectional GRU
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true  # Key GODE feature
+  
+  # Training - from GODE paper
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400  # Patience for LR reduction
+  lr_scheduler_min: 0.00005  # Min learning rate
+  epochs: 1000  # Early stopping after 1000 epochs
+  
+  # VAE loss - GODE uses β_KL = 10^-3
+  beta: 0.001  # β_KL weight factor
+  kl_anneal_epochs: 0  # No annealing in GODE
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Monitoring
+  early_stop_patience: 1000  # Early stopping
+  save_top_k: 3
+
+
+# ============================================================
+# GODE - Adapted for PDE dataset (55 productions, max_length=120)
+# ============================================================
+gode_pde:
+  description: "GODE architecture adapted for PDE dataset (48,444 samples, 55 productions)"
+  
+  # Architecture - adapted from GODE Benchmark 2
+  z_dim: 26  # Slightly larger latent for PDEs (paper used 26 for structural dynamics)
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]  # All same kernel (Benchmark 2 approach)
+  decoder_hidden: 80  # Bidirectional GRU hidden dim
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training - adapted from GODE
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - β_KL = 10^-4 (Benchmark 2)
+  beta: 0.0001  # Lower beta for more complex expressions
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Stability
+  gradient_clip_val: 1.0  # Prevent catastrophic gradient explosions
+  gradient_clip_algorithm: 'norm'  # Clip by norm (default)
+  
+  # Monitoring
+  early_stop_patience: 1000
+  save_top_k: 5
+
+
+# ============================================================
+# GODE PDE - BULLETPROOF (with higher beta + gradient clipping)
+# ============================================================
+gode_pde_bulletproof:
+  description: "GODE PDE with stability improvements to prevent posterior collapse"
+  
+  # Architecture - same as gode_pde
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training - more conservative, focus on reconstruction
+  batch_size: 256
+  lr: 0.0003  # Lower LR for stability and better reconstruction
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - lower beta for reconstruction accuracy
+  beta: 0.0001  # Focus on reconstruction quality (1e-4)
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Stability - CRITICAL for preventing collapse!
+  gradient_clip_val: 1.0  # Clip gradients to max norm of 1.0
+  gradient_clip_algorithm: 'norm'  # L2 norm clipping
+  
+  # Monitoring
+  early_stop_patience: 20  # Quick early stopping
+  save_top_k: 5
+
+
+# ============================================================
+# GODE - Higher Beta Experiments
+# ============================================================
+gode_pde_beta100x:
+  description: "GODE PDE with β = 0.01 (100x higher) - test regularization impact"
+  
+  # Architecture - same as gode_pde
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - 100x higher beta
+  beta: 0.01  # Was 0.0001, now 100x higher
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Monitoring
+  early_stop_patience: 1000
+  save_top_k: 5
+
+
+gode_pde_beta1000x:
+  description: "GODE PDE with β = 0.1 (1000x higher) - strong regularization"
+  
+  # Architecture - same as gode_pde
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - 1000x higher beta
+  beta: 0.1  # Was 0.0001, now 1000x higher
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Monitoring
+  early_stop_patience: 1000
+  save_top_k: 5
+
+
+gode_pde_beta10000x:
+  description: "GODE PDE with β = 1.0 (10000x higher) - maximum regularization"
+  
+  # Architecture - same as gode_pde
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - 10000x higher beta (Kusner-level)
+  beta: 1.0  # Was 0.0001, now 10000x higher
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Monitoring
+  early_stop_patience: 1000
+  save_top_k: 5
+
+
+# ============================================================
+# LAMPLE & CHARTON (2020) - Token-based Approach
+# ============================================================
+lample_charton_pde:
+  description: "Lample & Charton token-based approach - bulletproof with gradient clipping"
+  
+  # Architecture - same GODE structure but V=82 instead of P=55
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training - focus on reconstruction
+  batch_size: 256
+  lr: 0.0003  # Lower LR for stability and better reconstruction
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - low beta for reconstruction quality
+  beta: 0.0001  # 1e-4 for reconstruction accuracy
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Stability - prevent collapse!
+  gradient_clip_val: 1.0
+  gradient_clip_algorithm: 'norm'
+  
+  # Monitoring
+  early_stop_patience: 20  # Quick early stopping
+  save_top_k: 5
+  
+  # Dataset - TOKEN-BASED (vocab_size=82)
+  token_based: true  # Flag to use token datamodule instead of production
+
+
+lample_charton_pde_beta1e5:
+  description: "Lample & Charton - ultra-low beta (β=1e-5) for maximum reconstruction"
+  
+  # Architecture
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - ultra-low beta for maximum reconstruction
+  beta: 0.00001  # 1e-5, 10x lower than grammar baseline
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Monitoring
+  early_stop_patience: 1000
+  save_top_k: 5
+  
+  # Dataset
+  token_based: true
+
+
+lample_charton_pde_beta100x:
+  description: "Lample & Charton - higher beta (β=0.01) for comparison"
+  
+  # Architecture
+  z_dim: 26
+  encoder_hidden: 128
+  encoder_conv_layers: 3
+  encoder_kernel: [7, 7, 7]
+  decoder_hidden: 80
+  decoder_layers: 3
+  decoder_dropout: 0.1
+  decoder_bidirectional: true
+  
+  # Training
+  batch_size: 256
+  lr: 0.001
+  lr_scheduler_patience: 400
+  lr_scheduler_min: 0.00005
+  epochs: 1000
+  
+  # VAE loss - 100x higher beta
+  beta: 0.01  # 1e-2 for better regularization
+  kl_anneal_epochs: 0
+  cyclical_beta: false
+  cycle_epochs: 10
+  free_bits: 0.0
+  
+  # Monitoring
+  early_stop_patience: 1000
+  save_top_k: 5
+  
+  # Dataset
+  token_based: true
+

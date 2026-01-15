@@ -1,0 +1,16 @@
+# Single source of truth for the "reporting-ready" operator-only 48000_fixed pipeline.
+#
+# Everything in the dataset/train/eval pipeline should be able to reference these
+# paths (directly or via a small loader utility) to avoid 45672/48444/48000 drift.
+dataset:
+  csv_metadata: data/raw/pde_dataset_48000_fixed.csv
+  split_dir: data/splits_48000_fixed
+  tokenized_dir: data/tokenized_48000_fixed
+
+training:
+  checkpoint_root: checkpoints_48000_fixed
+
+reports:
+  analysis_root: analysis_results
+  figures_root: experiments/reports
+

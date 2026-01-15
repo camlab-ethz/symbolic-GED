@@ -1,0 +1,41 @@
+EVALUATION VERDICT: Grammar VAE vs Token VAE
+=============================================
+
+✅ SUCCESS: All 45,672 samples parsed successfully for BOTH tokenizations!
+
+KEY NUMBERS FOR YOUR PROFESSOR:
+
+REPRESENTATION METRICS (Encoder Quality):
+
+1. Family Clustering:
+   - ARI: Grammar=0.3443, Token=0.4019 → Token wins
+   - NMI: Grammar=0.5716, Token=0.5992 → Token wins
+   - Purity: Grammar=0.5002, Token=0.5384 → Token wins
+
+2. Type Clustering:
+   - ARI: Grammar=0.0879, Token=0.0508 → Grammar wins
+   - NMI: Grammar=0.1879, Token=0.0850 → Grammar wins
+   - Purity: Grammar=0.5466, Token=0.4681 → Grammar wins
+
+3. Classification (Linear Probe Accuracy):
+   - Family: Grammar=0.9993, Token=0.9990 → Grammar wins
+   - Type: Grammar=0.8850, Token=0.7299 → Grammar wins (big margin)
+   - Order: Grammar=0.9986, Token=0.9407 → Grammar wins
+
+DECODED SEMANTICS METRICS (Generator Quality):
+
+1. Validity Rate:
+   - Grammar: 100% (45,672/45,672 valid)
+   - Token: 100% (45,672/45,672 valid)
+
+2. Agreement with Ground Truth:
+   - Family: Grammar=0.3010, Token=0.2962 → Grammar wins (slight)
+   - Type: Grammar=0.6473, Token=0.6256 → Grammar wins
+   - Linearity: Grammar=1.0000, Token=0.2634 → Grammar wins (HUGE margin!)
+   - Spatial Order: Grammar=0.7225, Token=0.8178 → Token wins
+   - Temporal Order: Grammar=0.8957, Token=0.7380 → Grammar wins
+
+OVERALL:
+- Grammar VAE: Better at classification, type clustering, and preserving linearity
+- Token VAE: Better at family clustering and spatial order prediction
+- Both achieve 100% validity rate

@@ -1,0 +1,42 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.cpython-*.py
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Packaging
+*.egg-info/
+dist/
+build/
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# src artifacts
+src/checkpoints_*/
+src/slurm_logs/
+src/analysis_results/
+src/experiments/
+src/logs/
+src/lightning_logs/
+src/__pycache__/
+
+# generated data (choose one policy)
+src/data/raw/*.csv
+src/data/raw/*.txt
+src/data/splits_*/
+src/data/tokenized_*/
+src/vae/train/logs/
+# generated outputs / artifacts
+src/examples_out/
+src/generation_results/
+src/test_generative_output.log
+src/test_token_vae_*.json
+src/vae/slurm-*.out
+src/vae/train/logs/

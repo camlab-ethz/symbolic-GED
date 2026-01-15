@@ -1,0 +1,282 @@
+{
+  "grammar_fixed": {
+    "checkpoint": "/cluster/work/math/ooikonomou/symbolic-GED/src/checkpoints/grammar_vae/best-epoch=104-seqacc=val/seq_acc=0.9787.ckpt",
+    "tokenization": "grammar",
+    "beta": 0.0001,
+    "clustering": {
+      "family": {
+        "nmi": 0.3618131376376746,
+        "ari": 0.17501216178509632,
+        "silhouette": -0.023004937916994095
+      },
+      "dimension": {
+        "nmi": 1.0,
+        "ari": 1.0,
+        "silhouette": 0.0
+      },
+      "pde_type": {
+        "nmi": 0.06941064542891634,
+        "ari": 0.030025636445874002,
+        "silhouette": 0.00403306121006608
+      },
+      "linearity": {
+        "nmi": 0.03320452112122019,
+        "ari": 0.05755713515337563,
+        "silhouette": 0.018120165914297104
+      },
+      "order": {
+        "nmi": 0.06455078358739563,
+        "ari": -0.03190624322387254,
+        "silhouette": -0.10704831779003143
+      },
+      "spatial_dim": {
+        "nmi": 0.3512189875222208,
+        "ari": 0.3812576366077783,
+        "silhouette": 0.021960701793432236
+      },
+      "time_dependence": {
+        "nmi": 0.0007348384486086787,
+        "ari": -0.006949673158273581,
+        "silhouette": 0.026671048253774643
+      }
+    },
+    "generative": {
+      "validity": 89.60000000000001,
+      "novelty_exact": 97.65625,
+      "novelty_structural": 51.78571428571429,
+      "novelty_family": 26.004464285714285,
+      "diversity": 95.75892857142857,
+      "n_valid": 896,
+      "n_unique": 858,
+      "n_exact_novel": 875,
+      "n_structural_novel": 464,
+      "n_family_novel": 233
+    },
+    "interpolation": {
+      "interp_validity": 100.0,
+      "smooth_rate": 100.0,
+      "total_points": 550,
+      "valid_points": 550
+    },
+    "geometry": {
+      "active_units": 26,
+      "total_units": 26,
+      "mean_variance": 0.8002732992172241,
+      "min_variance": 0.42809149622917175,
+      "max_variance": 1.1349334716796875,
+      "latent_norm_mean": 4.616122245788574,
+      "latent_norm_std": 1.3686552047729492
+    },
+    "name": "grammar_fixed"
+  },
+  "token_fixed": {
+    "checkpoint": "/cluster/work/math/ooikonomou/symbolic-GED/src/checkpoints/token_vae/best-epoch=186-seqacc=val/seq_acc=0.9688.ckpt",
+    "tokenization": "token",
+    "beta": 0.0001,
+    "clustering": {
+      "family": {
+        "nmi": 0.552275122694762,
+        "ari": 0.3420358912625551,
+        "silhouette": 0.013744022697210312
+      },
+      "dimension": {
+        "nmi": 1.0,
+        "ari": 1.0,
+        "silhouette": 0.0
+      },
+      "pde_type": {
+        "nmi": 0.17914762171408477,
+        "ari": 0.08580911279618791,
+        "silhouette": -0.00889793410897255
+      },
+      "linearity": {
+        "nmi": 0.16228023701390348,
+        "ari": 0.22173051057470194,
+        "silhouette": 0.0859842598438263
+      },
+      "order": {
+        "nmi": 0.352497082794794,
+        "ari": 0.23823508306592797,
+        "silhouette": -0.07029671221971512
+      },
+      "spatial_dim": {
+        "nmi": 0.11723608373947009,
+        "ari": 0.0952735417074208,
+        "silhouette": 0.009886542335152626
+      },
+      "time_dependence": {
+        "nmi": 0.042356064165745076,
+        "ari": 0.10468974815498676,
+        "silhouette": 0.0393463596701622
+      }
+    },
+    "generative": {
+      "validity": 78.8,
+      "novelty_exact": 96.19289340101524,
+      "novelty_structural": 26.776649746192895,
+      "novelty_family": 20.939086294416242,
+      "diversity": 99.8730964467005,
+      "n_valid": 788,
+      "n_unique": 787,
+      "n_exact_novel": 758,
+      "n_structural_novel": 211,
+      "n_family_novel": 165
+    },
+    "interpolation": {
+      "interp_validity": 99.81818181818181,
+      "smooth_rate": 98.0,
+      "total_points": 550,
+      "valid_points": 549
+    },
+    "geometry": {
+      "active_units": 26,
+      "total_units": 26,
+      "mean_variance": 0.8303945064544678,
+      "min_variance": 0.2744510769844055,
+      "max_variance": 1.7214080095291138,
+      "latent_norm_mean": 5.904371738433838,
+      "latent_norm_std": 1.4043090343475342
+    },
+    "name": "token_fixed"
+  },
+  "grammar_cyclical": {
+    "checkpoint": "/cluster/work/math/ooikonomou/symbolic-GED/src/checkpoints/grammar_vae/best-epoch=144-seqacc=val/seq_acc=0.9573.ckpt",
+    "tokenization": "grammar",
+    "beta": 0.001,
+    "clustering": {
+      "family": {
+        "nmi": 0.4270761983344903,
+        "ari": 0.20647333827610703,
+        "silhouette": -0.018980955705046654
+      },
+      "dimension": {
+        "nmi": 1.0,
+        "ari": 1.0,
+        "silhouette": 0.0
+      },
+      "pde_type": {
+        "nmi": 0.058924797530981635,
+        "ari": 0.033135663364747485,
+        "silhouette": 0.011203865520656109
+      },
+      "linearity": {
+        "nmi": 0.00027961551184236833,
+        "ari": 0.001777888937178974,
+        "silhouette": 0.014421961270272732
+      },
+      "order": {
+        "nmi": 0.053547525519172225,
+        "ari": -0.006442953356279142,
+        "silhouette": -0.09264145791530609
+      },
+      "spatial_dim": {
+        "nmi": 0.004942720551538176,
+        "ari": 0.00568685209945447,
+        "silhouette": 0.013303457759320736
+      },
+      "time_dependence": {
+        "nmi": 0.12820142048322025,
+        "ari": -0.033114574981894206,
+        "silhouette": 0.044750478118658066
+      }
+    },
+    "generative": {
+      "validity": 97.7,
+      "novelty_exact": 94.98464687819856,
+      "novelty_structural": 35.20982599795291,
+      "novelty_family": 17.09314227226203,
+      "diversity": 98.66939611054248,
+      "n_valid": 977,
+      "n_unique": 964,
+      "n_exact_novel": 928,
+      "n_structural_novel": 344,
+      "n_family_novel": 167
+    },
+    "interpolation": {
+      "interp_validity": 100.0,
+      "smooth_rate": 100.0,
+      "total_points": 550,
+      "valid_points": 550
+    },
+    "geometry": {
+      "active_units": 19,
+      "total_units": 26,
+      "mean_variance": 0.6468735933303833,
+      "min_variance": 0.0026233475655317307,
+      "max_variance": 1.3733395338058472,
+      "latent_norm_mean": 4.058408737182617,
+      "latent_norm_std": 1.034935474395752
+    },
+    "name": "grammar_cyclical"
+  },
+  "token_cyclical": {
+    "checkpoint": "/cluster/work/math/ooikonomou/symbolic-GED/src/checkpoints/token_vae/best-epoch=215-seqacc=val/seq_acc=0.8997.ckpt",
+    "tokenization": "token",
+    "beta": 0.001,
+    "clustering": {
+      "family": {
+        "nmi": 0.29054927467760644,
+        "ari": 0.1260855423385408,
+        "silhouette": 0.006678074132651091
+      },
+      "dimension": {
+        "nmi": 1.0,
+        "ari": 1.0,
+        "silhouette": 0.0
+      },
+      "pde_type": {
+        "nmi": 0.03861018249278011,
+        "ari": 0.02143527994823409,
+        "silhouette": -0.005200404208153486
+      },
+      "linearity": {
+        "nmi": 0.3654598074792309,
+        "ari": 0.46885988644721416,
+        "silhouette": 0.07240419834852219
+      },
+      "order": {
+        "nmi": 0.1301942427239628,
+        "ari": 0.07356654880529807,
+        "silhouette": -0.03720317408442497
+      },
+      "spatial_dim": {
+        "nmi": 0.163840966802491,
+        "ari": 0.13049701417207396,
+        "silhouette": 0.010860455222427845
+      },
+      "time_dependence": {
+        "nmi": 0.029847813520167302,
+        "ari": 0.03764726907059329,
+        "silhouette": -0.004805906675755978
+      }
+    },
+    "generative": {
+      "validity": 98.5,
+      "novelty_exact": 95.0253807106599,
+      "novelty_structural": 12.893401015228426,
+      "novelty_family": 9.543147208121827,
+      "diversity": 99.79695431472081,
+      "n_valid": 985,
+      "n_unique": 983,
+      "n_exact_novel": 936,
+      "n_structural_novel": 127,
+      "n_family_novel": 94
+    },
+    "interpolation": {
+      "interp_validity": 99.63636363636364,
+      "smooth_rate": 98.0,
+      "total_points": 550,
+      "valid_points": 548
+    },
+    "geometry": {
+      "active_units": 21,
+      "total_units": 26,
+      "mean_variance": 0.5241504907608032,
+      "min_variance": 0.0055312542244791985,
+      "max_variance": 1.1691166162490845,
+      "latent_norm_mean": 4.471640110015869,
+      "latent_norm_std": 0.9307628273963928
+    },
+    "name": "token_cyclical"
+  }
+}
