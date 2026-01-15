@@ -1,9 +1,8 @@
 """
-Fix known issues in pde_dataset_48444.csv
+Fix known issues in PDE dataset.
 
 Issues fixed:
-1. Cahn-Hilliard marked as nonlinear=True but actual PDEs are linear
-   (The nonlinear terms dxx(u^3) were not included in generation)
+1. Normalize PDE strings: strip '= 0' suffix, convert '**' to '^'
 
 This script creates a corrected version of the dataset.
 """
@@ -41,15 +40,8 @@ def fix_dataset(input_path: str, output_path: str) -> dict:
         stats["fixes"]["normalized_pde_strings"] = n_changed
         print(f"Normalized PDE strings for {n_changed} rows (strip '=0', '**'→'^')")
     
-    # Issue 2: Cahn-Hilliard nonlinearity
-    # The actual PDEs don't contain u^3 terms, so they're linear
-    ch_mask = df['family'] == 'cahn_hilliard'
-    ch_nonlinear_count = df.loc[ch_mask, 'nonlinear'].sum()
-    
-    if ch_nonlinear_count > 0:
-        df.loc[ch_mask, 'nonlinear'] = False
-        stats['fixes']['cahn_hilliard_nonlinear_to_linear'] = int(ch_nonlinear_count)
-        print(f"Fixed {ch_nonlinear_count} Cahn-Hilliard PDEs: nonlinear=True → False")
+    # Note: Cahn-Hilliard PDEs contain dxx(u^3) which IS nonlinear
+    # No fix needed - the generator correctly marks them as nonlinear
     
     # Verify the fix
     # Check that all PDEs with u^3 or u^2 are marked nonlinear
@@ -66,6 +58,8 @@ def fix_dataset(input_path: str, output_path: str) -> dict:
             "u * dz",
             "u*dz",
             "(dx(u))^2",
+            "sin(u)",  # sine_gordon
+            "cos(u)",
         ]
         return any(ind in pde for ind in indicators)
     

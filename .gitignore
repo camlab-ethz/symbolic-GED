@@ -40,3 +40,9 @@ src/test_generative_output.log
 src/test_token_vae_*.json
 src/vae/slurm-*.out
 src/vae/train/logs/
+src/scripts/generation_results/
+src/scripts/slurm_logs/
+src/splits/
+src/examples/*.csv
+src/telegrapher_bridge.csv
+.vscode/

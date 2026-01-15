@@ -295,7 +295,7 @@ def analyze_training_skeletons():
         'nonlinear_patterns': Counter(),
     }
     
-    dataset_path = Path(__file__).parent.parent / "data/raw/pde_dataset_45672.csv"
+    dataset_path = Path(__file__).parent.parent / "data/raw/pde_dataset_48000_fixed.csv"
     if not dataset_path.exists():
         return training_skeletons
     

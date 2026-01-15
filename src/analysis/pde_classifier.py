@@ -168,25 +168,31 @@ class PDEClassifier:
         # Patterns designed for actual dataset format
         self.family_patterns = [
             # === FOURTH ORDER ===
-            ('kuramoto_sivashinsky', [
-                (r'dxxxx\(|∇⁴u|u_xxxx', True), (r'dxx\(|∇²u|u_xx', True),
-            ]),
-            # cahn_hilliard: HAS time derivative + bilaplacian
+            # cahn_hilliard: HAS time derivative + bilaplacian + u^3 (the dxx(u^3) term)
             ('cahn_hilliard', [
                 (r'dt\(|∂u/∂t|u_t', True),  # HAS time derivative
-                (r'dxxxx\(|dyyyy\(|dzzzz\(|∇⁴|u_xxxx', True), 
+                (r'dxxxx\(|dyyyy\(|dzzzz\(|∇⁴|u_xxxx', True),
+                (r'u\^3|u\*\*3', True),  # HAS u^3 term (inside dxx(u^3))
             ]),
-            # biharmonic: NO time derivative, just bilaplacian
+            # kuramoto_sivashinsky: dt + dxxxx + dxx but NO u^3
+            ('kuramoto_sivashinsky', [
+                (r'dt\(|∂u/∂t|u_t', True),
+                (r'dxxxx\(|∇⁴u|u_xxxx', True), (r'dxx\(|∇²u|u_xx', True),
+                (r'u\^3|u\*\*3|sin\(u\)', False),  # NO nonlinear terms
+            ]),
+            # biharmonic: NO time derivative (neither dt nor dtt), just bilaplacian
             ('biharmonic', [
                 (r'dxxxx\(|∇⁴u|Δ²u|u_xxxx', True),
-                (r'dt\(|∂u/∂t|u_t', False),  # NO time derivative
+                (r'dt\(|dtt\(|∂u/∂t|∂²u/∂t²|u_t|u_tt', False),  # NO time derivative at all
             ]),
             
             # === NONLINEAR PARABOLIC ===
-            # fisher_kpp: dt - dxx + c*u^2 - c*u (same coefficient!)
+            # fisher_kpp: dt - dxx - r*u + r*u^2 (logistic growth: has both u^2 and standalone -u)
             ('fisher_kpp', [
                 (r'dt\(|∂u/∂t|u_t', True), (r'dxx\(|∇²u|u_xx', True), 
-                (r'u\s*\^\s*2.*-.*u|u\s*\*\*\s*2.*-.*u|u\(1-u\)', True),  # u^2 and -u pattern
+                (r'u\s*\^\s*2|u\s*\*\*\s*2', True),  # Has u^2
+                (r'-[^*^d]*\*?u[^*^\d]|-[^*^d]*\*?u$', True),  # Has -...*u term (not u^2 or u*dx)
+                (r'u\s*\^\s*3|u\s*\*\*\s*3', False),  # NO u^3 (that's allen_cahn)
             ]),
             # allen_cahn: dt - c*dxx + u^3 - u (has -u at end!)
             ('allen_cahn', [
@@ -198,8 +204,10 @@ class PDEClassifier:
             
             
             # === DISPERSIVE ===
+            # kdv: has dxxx AND u*dx (nonlinear advection)
             ('kdv', [
                 (r'dxxx\(|∂³|u_xxx', True),  # Third order spatial
+                (r'u\*dx\(|u\*dy\(|u\s*u_x', True),  # HAS nonlinear advection
             ]),
             # reaction_diffusion_cubic: dt - Δu ± g*u^3 (no -u term!)
             ('reaction_diffusion_cubic', [

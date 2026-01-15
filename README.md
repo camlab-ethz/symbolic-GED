@@ -1,59 +1,58 @@
+# Symbolic-GED: PDE VAE Pipeline
 
-# ACFG‑PDE Toolkit
+This repo contains a clean, reproducible pipeline to generate symbolic PDE datasets, tokenize them (grammar + token/Lample-Charton style), train VAEs, and run latent-space analyses (t-SNE, clustering, interpolation, shared-z prior sampling).
 
-A modular toolkit to **generate**, **validate**, and **parse** PDE expressions with an **Attributed CFG**.
+## Repo layout
 
-## Features
-- Unambiguous CFG (explicit operator application) → unique parse.
-- Knuth‑style attributes (inherited/synthesized) with **family profiles** (heat, wave, Poisson, Allen–Cahn).
-- Structural guards (dimension/order/linearity/isotropy/sign constraints).
-- Canonicalization + hashing for **uniqueness**.
-- CFG‑only parser → **production‑ID sequences** and one‑hot matrices.
+- `src/`: all pipeline code (dataset creation, tokenizers, VAE training, analysis, SLURM scripts)
+- `pyproject.toml`: editable install for clean imports
+- `.gitignore`: excludes checkpoints/logs/generated artifacts
 
-## Install (editable)
+## Install
+
 ```bash
 pip install -e .
 ```
-Ensure your `terminals.py` is importable (same repo root or on PYTHONPATH).
 
-## Quick start
-```python
-from acfg_toolkit import preset_parabolic, generate_unique, canon_str, analyze, parse_rule_ids, rule_ids_to_onehot
-from acfg_toolkit import profile_heat, check_family
+## Quick start (reporting-ready 48000_fixed pipeline)
 
-inh = preset_parabolic(dim=2)
-asts = generate_unique(inh, n=5)
-for ast in asts:
-    s = canon_str(ast)               # canonical PDE string
-    syn = analyze(ast)               # synthesized attributes
-    ids = parse_rule_ids(s)          # production IDs
-    onehot, L = rule_ids_to_onehot(ids, L_max=128)
-    ok = check_family(ast, 2, profile_heat(2))  # semantic validation
-```
+Single source of truth paths:
+- `src/configs/paths_48000_fixed.yaml`
 
-## Families
-Built‑ins: **heat**, **wave**, **poisson**, **allen_cahn**.
-Add more by creating a `FamilyProfile` and adding rules to `check_family`.
+### 1) Create dataset + splits + tokenized arrays
 
-## Research vs Production
-- **Research**: use **hard guards** in family profiles to generate clean datasets; log rejections.
-- **Production**: add soft scoring/prior sampling to broaden diversity.
-
-## Extending operators
-- Add to your `terminals.py` (e.g., `dzzz(u)`, `dxxy(u)`), then extend parser recognizers in `parser.py` and availability in `terminals_adapter.py`.
-- For composite atoms (e.g., higher‑dim `|∇u|^2`), add constructors in `generator.py` and recognizers in `parser.py`.
-
-## Tests
 ```bash
-pytest -q
+bash src/dataset_creation/create_dataset.sh
 ```
 
+### 2) Train the 4 models (SLURM grid)
 
-## NLTK grammar + CSV to one-hot
-- `acfg_toolkit/grammar_nltk.py`: NLTK `CFG` grammar + `get_mask` utility.
-- `acfg_toolkit/csv_to_onehot.py`: tokenizes expressions, parses with NLTK, saves HDF5 one-hot.
-
-### Usage
 ```bash
-python -m acfg_toolkit.csv_to_onehot /path/to/data.csv operator_L expressions_oh.h5 125
+sbatch src/scripts/slurm/vae_train_grid_48000_fixed.sbatch
 ```
+
+### 3) Run analyses (SLURM)
+
+```bash
+sbatch src/scripts/slurm/create_tsne_all_models.sbatch
+sbatch src/scripts/slurm/run_clustering_metrics_all_models.sbatch
+sbatch src/scripts/slurm/run_interpolation_examples_all_keys.sbatch
+sbatch src/scripts/slurm/run_prior_sampling_shared_z_all_models.sbatch
+```
+
+Optional (tag outputs):
+```bash
+export RUN_ID="final"
+```
+
+## Documentation
+
+- Reproducibility: `src/REPRODUCIBILITY.md`
+- Dataset pipeline: `src/DATASET_PIPELINE.md`
+- Training guide: `src/vae/TRAINING_GUIDE.md`
+- Evaluation notes: `src/README_EVALUATION.md`
+
+## Notes
+
+- Dataset PDE strings are operator-only (no trailing `= 0`).
+- Power syntax is normalized consistently across the pipeline (treat `**` as `^` internally for tokenizers/grammar).
