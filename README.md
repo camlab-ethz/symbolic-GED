@@ -1,6 +1,6 @@
 # Symbolic-GED: PDE VAE Pipeline
 
-This repo contains a clean, reproducible pipeline to generate symbolic PDE datasets, tokenize them (grammar + token/Lample-Charton style), train VAEs, and run latent-space analyses (t-SNE, clustering, interpolation, shared-z prior sampling).
+Reproducible pipeline to generate symbolic PDE datasets, tokenize them (grammar + token/Lample-Charton style), train VAEs, and run latent-space analyses (t-SNE, clustering, interpolation, shared-z prior sampling).
 
 ## Repo layout
 
