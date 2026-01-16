@@ -17,7 +17,7 @@ Example:
     model = VAEModule.from_config(config)
 
     # Or create directly
-    model = VAEModule(P=53, max_length=114, z_dim=26)
+    model = VAEModule(P=56, max_length=114, z_dim=26)
 """
 
 from .config import (

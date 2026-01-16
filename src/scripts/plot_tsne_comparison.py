@@ -257,7 +257,7 @@ def create_side_by_side_tsne(
     ax2.grid(True, alpha=0.3)
 
     # Add a single legend for family colors (figure-level, not per-axis)
-    # This keeps plots clean and ensures the same color mapping is shown.
+    # This ensures the same color mapping is shown.
     legend_handles = [
         Line2D(
             [0],

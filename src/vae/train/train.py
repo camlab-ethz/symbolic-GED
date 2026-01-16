@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Train VAE with Grammar or Token tokenization.
 
-This script provides a clean CLI for training VAEs on PDE sequences.
+This script provides a CLI for training VAEs on PDE sequences.
 Supports both grammar-based (production sequences) and token-based (character sequences) inputs.
 
 Examples:

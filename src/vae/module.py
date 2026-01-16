@@ -1,6 +1,6 @@
 """VAE Lightning Module for Grammar and Token-based PDE encoding.
 
-This module provides a clean, well-documented VAE implementation using PyTorch Lightning.
+This module provides a VAE implementation using PyTorch Lightning.
 Supports both grammar-based (production sequences) and token-based (character sequences) inputs.
 
 Example:
@@ -10,7 +10,7 @@ Example:
     model = VAEModule.from_config(config)
 
     # Direct instantiation (backward compatible)
-    model = VAEModule(P=53, max_length=114, z_dim=26)
+    model = VAEModule(P=56, max_length=114, z_dim=26)
 """
 
 import logging

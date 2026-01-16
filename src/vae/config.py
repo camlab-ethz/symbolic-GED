@@ -111,7 +111,7 @@ class DataConfig:
 
     # Tokenization-specific
     grammar_max_length: int = 114
-    grammar_vocab_size: int = 55
+    grammar_vocab_size: int = 56
     token_max_length: int = 62
     token_vocab_size: int = 82
 

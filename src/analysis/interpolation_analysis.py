@@ -77,7 +77,11 @@ def classify_family(pde: str) -> str:
 
 
 def is_valid_pde(pde: str) -> bool:
-    """Check if PDE string is valid."""
+    """Check if PDE string is valid.
+    
+    A valid PDE must have at least one SPATIAL derivative (dx, dy, dz or higher order).
+    Equations with only temporal derivatives are ODEs, not PDEs.
+    """
     if not pde or pde == '[INVALID]':
         return False
     
@@ -87,10 +91,15 @@ def is_valid_pde(pde: str) -> bool:
     
     # Check for required components
     pde_lower = pde.lower()
-    has_derivative = any(x in pde_lower for x in ['dx', 'dy', 'dz', 'dt', '_x', '_y', '_z', '_t'])
+    
+    # CRITICAL: A PDE must have SPATIAL derivatives, not just temporal
+    # Match dx, dy, dz, dxx, dyy, dzz, dxxx, dxxyy, etc. but NOT dt, dtt
+    import re
+    has_spatial_derivative = bool(re.search(r'd[xyz]+[xyz]*\s*\(', pde_lower)) or \
+                             any(x in pde_lower for x in ['_x', '_y', '_z', '_xx', '_yy', '_zz'])
     has_variable = 'u' in pde_lower
     
-    if not has_derivative or not has_variable:
+    if not has_spatial_derivative or not has_variable:
         return False
     
     return True

@@ -100,14 +100,13 @@ token:
 # Shared model architecture
 model:
   shared:
-    z_dim: 74
+    z_dim: 26
   encoder:
-    hidden_size: 256
-    conv_sizes: [64, 128, 256]
-    kernel_sizes: [2, 3, 4]
+    hidden_size: 128
+    kernel_sizes: [7, 7, 7]
   decoder:
-    hidden_size: 501
-    num_layers: 2
+    hidden_size: 80
+    num_layers: 3
     dropout: 0.1
 
 # Shared training settings
@@ -162,7 +161,7 @@ Both models share the same architecture:
 ```
 Input: PDE encoded as integer IDs
   ↓
-Encoder: Conv1D layers → Latent space (z_dim=74)
+Encoder: Conv1D layers → Latent space (z_dim=26)
   ↓
 Sampling: μ, σ → z ~ N(μ, σ²)
   ↓

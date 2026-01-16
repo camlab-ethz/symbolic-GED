@@ -20,10 +20,10 @@ PATHS_CONFIG="${PATHS_CONFIG:-configs/paths_48000_fixed.yaml}"
 eval "$(python3 scripts/print_paths_env.py --paths-config ${PATHS_CONFIG})"
 
 # Current model checkpoints (same as t-SNE script)
-GRAMMAR_BETA2E4="checkpoints_48000_fixed/grammar_vae/beta_2e-4_seed_42/best-epoch=411-val/seq_acc=0.9983.ckpt"
-GRAMMAR_BETA1E2="checkpoints_48000_fixed/grammar_vae/beta_0.01_seed_42/best-epoch=517-val/seq_acc=0.0755.ckpt"
-TOKEN_BETA2E4="checkpoints_48000_fixed/token_vae/beta_2e-4_seed_42/best-epoch=307-val/seq_acc=0.9992.ckpt"
-TOKEN_BETA1E2="checkpoints_48000_fixed/token_vae/beta_0.01_seed_42/best-epoch=136-val/seq_acc=0.0016.ckpt"
+GRAMMAR_BETA2E4="checkpoints_48000_fixed/grammar_vae/beta_2e-4_seed_42/best-epoch=600-val/seq_acc=0.9969.ckpt"
+GRAMMAR_BETA1E2="checkpoints_48000_fixed/grammar_vae/beta_0.01_seed_42/best-epoch=443-val/seq_acc=0.0887.ckpt"
+TOKEN_BETA2E4="checkpoints_48000_fixed/token_vae/beta_2e-4_seed_42/best-epoch=483-val/seq_acc=0.9976.ckpt"
+TOKEN_BETA1E2="checkpoints_48000_fixed/token_vae/beta_0.01_seed_42/best-epoch=632-val/seq_acc=0.0057.ckpt"
 
 echo "=========================================="
 echo "Clustering metrics (NMI) for 4 models"

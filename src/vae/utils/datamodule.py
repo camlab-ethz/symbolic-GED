@@ -41,8 +41,8 @@ class ProductionDataset(Dataset):
                 if masks_tmp.shape[:2] != (total_N, self.T):
                     raise ValueError("Mask shape does not match ids shape")
                 self._masks_packed = True
-                # When packed, masks are padded to multiple of 8, but actual vocab is 55
-                # Use the P parameter passed to __init__ (which should be 55)
+                # When packed, masks are padded to multiple of 8, but actual vocab is 56
+                # Use the P parameter passed to __init__ (which should be 56)
                 # Don't override self.P here - it was already set from the parameter
             elif masks_tmp.dtype == bool and masks_tmp.ndim == 3:
                 # Unpacked format: (N, T, P)
@@ -145,13 +145,11 @@ class GrammarVAEDataModule(pl.LightningDataModule):
             if masks_mm.dtype == np.uint8 and masks_mm.ndim == 3:
                 # Packed: (N, T, bytes)
                 self._masks_packed = True
-                # When packed, P is padded to multiple of 8, but actual vocab is 55
-                # Calculate actual P from packed size: 7 bytes = 56 bits, but actual P=55
+                # When packed, P is padded to multiple of 8, but actual vocab is 56
+                # Calculate actual P from packed size: 7 bytes = 56 bits, actual P=56
                 self.P = masks_mm.shape[-1] * 8  # This is P_padded (56)
-                # We'll trim to actual P=55 in __getitem__
-                # But for now, we need to know the actual vocab size
-                # For grammar, actual vocab_size is 55 (hardcoded - matches config)
-                self.P = 55  # Actual vocab size (not padded)
+                # For grammar, actual vocab_size is 56 (matches PROD_COUNT from grammar.py)
+                self.P = 56  # Actual vocab size
             elif masks_mm.dtype == bool and masks_mm.ndim == 3:
                 # Unpacked: (N, T, P)
                 self._masks_packed = False

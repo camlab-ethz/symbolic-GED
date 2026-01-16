@@ -1,0 +1,14 @@
+data/
+datasets/
+outputs/
+checkpoints/
+wandb/
+logs/
+runs/
+.venv/
+**/__pycache__/
+**/*.pt
+**/*.ckpt
+**/*.h5
+**/*.npz
+**/*.npy

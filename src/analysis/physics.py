@@ -335,10 +335,13 @@ def is_valid_pde(pde: str, use_sympy: bool = False) -> bool:
 
     A valid PDE must:
     - Have balanced parentheses
-    - Contain at least one derivative (dx, dy, dz, dt)
+    - Contain at least one SPATIAL derivative (dx, dy, dz, or higher order)
     - Contain the variable u
     - Not have malformed syntax (trailing operators, consecutive operators, etc.)
     - Not have malformed numbers (like ..19 or ..)
+
+    Note: A PDE requires spatial derivatives. Equations with only temporal
+    derivatives (like dt(u) or dtt(u) alone) are ODEs, not PDEs.
 
     Args:
         pde: PDE string (can omit = 0)
@@ -361,12 +364,17 @@ def is_valid_pde(pde: str, use_sympy: bool = False) -> bool:
         return False
 
     # Check for required components
-    has_derivative = any(
-        x in pde_clean.lower() for x in ["dx", "dy", "dz", "dt", "_x", "_y", "_z", "_t"]
+    # CRITICAL: A PDE must have at least one SPATIAL derivative (not just temporal)
+    # Patterns for spatial derivatives: dx, dy, dz (but NOT dt)
+    # Also match higher orders: dxx, dxxx, dxxxx, dyy, dzz, dxy, dxxyy, etc.
+    has_spatial_derivative = bool(re.search(
+        r'd[xyz]+[xyz]*\s*\(', pde_clean.lower()
+    )) or any(
+        x in pde_clean.lower() for x in ["_x", "_y", "_z", "_xx", "_yy", "_zz"]
     )
     has_variable = "u" in pde_clean.lower()
 
-    if not has_derivative or not has_variable:
+    if not has_spatial_derivative or not has_variable:
         return False
 
     # =========================================================================
@@ -413,6 +421,14 @@ def is_valid_pde(pde: str, use_sympy: bool = False) -> bool:
     if re.search(r"d[xyzt]+\(\s*0\s*\)", pde_clean):  # derivative of 0
         return False
     if re.search(r"d[xyzt]+\(\s*\.\s*\)", pde_clean):  # derivative of dot
+        return False
+    
+    # 6b. Check for functions with invalid arguments like sin(.), cos(.), exp(.)
+    #     Valid: sin(u), cos(2*u), exp(u)
+    #     Invalid: sin(.), cos(.), exp(.), sin(), cos()
+    if re.search(r"(sin|cos|tan|exp|log|sqrt|pow)\(\s*\)", pde_clean):  # empty function
+        return False
+    if re.search(r"(sin|cos|tan|exp|log|sqrt|pow)\(\s*\.\s*\)", pde_clean):  # function of dot
         return False
 
     # 7. Check for leading operators at the very start (but allow leading -)

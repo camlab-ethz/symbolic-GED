@@ -6,7 +6,7 @@
 set -e  # Exit on error
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BASE_DIR="$(dirname "$SCRIPT_DIR")"
+BASE_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 cd "$BASE_DIR"
 
 echo "========================================================================"
@@ -29,7 +29,7 @@ RAW_CSV="${FIXED_CSV%_fixed.csv}.csv"
 echo ""
 echo "Step 1: Generating PDE dataset..."
 mkdir -p data/raw
-python dataset_creation/generator.py \
+python datasets/operators/generator.py \
     --output "${RAW_CSV}" \
     --num_per_family "$NUM_PER_FAMILY" \
     --seed "$RANDOM_STATE"
@@ -37,20 +37,20 @@ python dataset_creation/generator.py \
 # Step 2: Fix labels
 echo ""
 echo "Step 2: Fixing dataset labels..."
-python dataset_creation/fix_dataset_labels.py \
+python datasets/operators/fix_dataset_labels.py \
     --input "${RAW_CSV}" \
     --output "${FIXED_CSV}"
 
 # Step 3: Validate dataset (continue even if warnings)
 echo ""
 echo "Step 3: Validating dataset..."
-python dataset_creation/validate_dataset.py \
+python datasets/operators/validate_dataset.py \
     --dataset "${FIXED_CSV}" || true
 
 # Step 4: Create train/val/test splits
 echo ""
 echo "Step 4: Creating train/val/test splits..."
-python dataset_creation/create_data_splits.py \
+python datasets/operators/create_data_splits.py \
     --dataset "${FIXED_CSV}" \
     --output "${SPLIT_DIR}" \
     --train-ratio 0.70 \
@@ -61,7 +61,7 @@ python dataset_creation/create_data_splits.py \
 # Step 5: Tokenize dataset
 echo ""
 echo "Step 5: Tokenizing dataset..."
-python dataset_creation/create_tokenized_data.py \
+python datasets/operators/create_tokenized_data.py \
     --dataset "${FIXED_CSV}" \
     --splits "${SPLIT_DIR}" \
     --output "${TOKENIZED_DIR}"

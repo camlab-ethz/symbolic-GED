@@ -224,7 +224,7 @@ Tokenizes the entire dataset using both methods, then splits according to train/
 
 **Grammar Tokenization:**
 - Parses PDE into derivation sequence using CFG
-- Each token is a production rule ID (0-52)
+- Each token is a production rule ID (0-55)
 - Padded with -1 (invalid production)
 - See `pde/grammar.py` for grammar definition
 
@@ -393,7 +393,7 @@ src/
 ├── pde/                            # PDE module
 │   ├── __init__.py
 │   ├── families.py                 # PDE family definitions
-│   ├── grammar.py                  # Grammar tokenizer (P=53)
+│   ├── grammar.py                  # Grammar tokenizer (P=56)
 │   └── chr_tokenizer.py            # Character/Token tokenizer (V=82)
 ```
 

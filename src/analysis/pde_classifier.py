@@ -171,7 +171,7 @@ class PDEClassifier:
             # cahn_hilliard: HAS time derivative + bilaplacian + u^3 (the dxx(u^3) term)
             ('cahn_hilliard', [
                 (r'dt\(|∂u/∂t|u_t', True),  # HAS time derivative
-                (r'dxxxx\(|dyyyy\(|dzzzz\(|∇⁴|u_xxxx', True),
+                (r'dxxxx\(|dyyyy\(|dzzzz\(|∇⁴|u_xxxx', True), 
                 (r'u\^3|u\*\*3', True),  # HAS u^3 term (inside dxx(u^3))
             ]),
             # kuramoto_sivashinsky: dt + dxxxx + dxx but NO u^3
