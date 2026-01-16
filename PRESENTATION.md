@@ -1192,7 +1192,106 @@ f = -x³·exp(-t) - 0.5·6x·exp(-t) = x·(-x² - 3)·exp(-t)  ✓
 
 ---
 
-## 13.14 Summary: What We Built
+
+---
+
+## 13.15 Scientific Soundness: Implementation Details
+
+### Continuous Parameters (No Quantization)
+
+All motif parameters are **continuous floats**, not discretized:
+
+| Before (Problematic) | After (Correct) |
+|---------------------|-----------------|
+| `A = Rational(1.5).limit_denominator(100)` | `A = Float(1.5)` |
+| Discretized to ~100 values | True continuous distribution |
+| May cause duplicate u | Unique u expressions |
+
+**Why this matters:** Discrete parameters could create spurious patterns that leak operator identity.
+
+---
+
+### Reproducibility Guarantees
+
+**M6 Multi-scale Fourier Fix:**
+- Previously: Created internal RNG seeded from amplitude (non-reproducible)
+- Now: Uses **only the passed RNG** for all random sampling
+
+```python
+# Before (broken)
+rng = np.random.default_rng(int(params['A'] * 1e6))
+
+# After (reproducible)  
+def M6_multiscale_fourier(params, dim, temporal_order, rng):
+    # rng passed explicitly, same seed = same output
+```
+
+**Result:** Same seed always produces identical (u, f) pairs.
+
+---
+
+### Canonical Uniqueness
+
+**Problem:** `str(sin(x) + cos(x))` vs `str(cos(x) + sin(x))` may differ.
+
+**Solution:** Canonical printing with lexicographic ordering:
+
+```python
+def canonical_print(expr, do_simplify=True):
+    canonical = expand(expr)
+    if do_simplify:
+        canonical = simplify(canonical, ratio=1.5)
+    return sstr(canonical, order='lex')  # Deterministic!
+```
+
+**Uniqueness tracking:**
+- Per-set: No duplicate u within k pairs
+- Set-level: No duplicate (u₁...uₖ) sets for same operator
+
+---
+
+### Filter Integration for Track B
+
+**Track B Requirement:** u must be informative for operator identification.
+
+| Filter | Purpose | Track A | Track B |
+|--------|---------|---------|---------|
+| Complexity | Reject overly complex u/f | ✓ | ✓ |
+| Stability | Reject NaN/Inf on grid | ✓ | ✓ |
+| Informative | Excites all operator terms | Skip | **Required** |
+
+**Informative filter checks:**
+- All derivative terms in L have non-zero response
+- Nonlinear terms (u², sin(u)) have sufficient variation
+- u is not near-constant
+
+---
+
+### Generation Statistics
+
+Each record includes rejection statistics for transparency:
+
+```json
+{
+  "meta": {
+    "idx": 42,
+    "attempts": 156,
+    "rejection_stats": {
+      "duplicate": 23,
+      "complexity": 8,
+      "stability": 2,
+      "informative": 45,
+      "operator_error": 3
+    }
+  }
+}
+```
+
+**Typical rejection rates:**
+- Track A: ~20% rejected (mostly duplicates)
+- Track B: ~50% rejected (informative filter is strict)
+
+## 13.16 Summary: What We Built
 
 ### Dataset Specifications
 
@@ -1215,7 +1314,7 @@ f = -x³·exp(-t) - 0.5·6x·exp(-t) = x·(-x² - 3)·exp(-t)  ✓
 
 ---
 
-## 14. Future Work
+## 15. Future Work
 
 1. **Hybrid approach**: Combine Grammar constraints with Character embeddings
 2. **Conditional generation**: Generate PDEs with specific properties (dimension, order)
@@ -1227,7 +1326,7 @@ f = -x³·exp(-t) - 0.5·6x·exp(-t) = x·(-x² - 3)·exp(-t)  ✓
 
 ---
 
-## Appendix A: PDE Family Reference
+## 16. Appendix A: PDE Family Reference
 
 | Family | Equation Form | Temporal | Spatial | Nonlinear |
 |--------|---------------|----------|---------|-----------|
@@ -1250,7 +1349,7 @@ f = -x³·exp(-t) - 0.5·6x·exp(-t) = x·(-x² - 3)·exp(-t)  ✓
 
 ---
 
-## Appendix B: Full Clustering Results (Test Set)
+## 16.1 Appendix B: Full Clustering Results (Test Set)
 
 ### Grammar VAE β=2e-4
 
@@ -1300,7 +1399,7 @@ f = -x³·exp(-t) - 0.5·6x·exp(-t) = x·(-x² - 3)·exp(-t)  ✓
 
 ---
 
-## Appendix C: Interpolation Pairs Tested
+## 16.2 Appendix C: Interpolation Pairs Tested
 
 | Pair | Physics Transition | Dims Tested |
 |------|-------------------|-------------|

@@ -12,14 +12,8 @@ Components:
 - u_sampler.py: Track A and Track B sampling logic
 - operator_apply.py: Apply L to u symbolically using SymPy
 - filters.py: Identifiability, complexity, and stability filters
-- utils.py: Timeout, canonical printing, uniqueness tracking
-- generate.py: Main CLI for dataset generation
-
-Usage:
-    python -m datasets.manufactured.generate --out data.jsonl --n_ops 1000 --k 8
-
-Programmatic:
-    from datasets.manufactured import sample_u, apply_operator, generate_record
+- utils.py: Canonical printing, uniqueness tracking
+- generate_chunk.py: SLURM-ready chunk generator
 """
 
 from datasets.manufactured.utils import (
@@ -36,14 +30,11 @@ from datasets.manufactured.operator_apply import (
 from datasets.manufactured.filters import (
     check_complexity, check_stability, check_informative, apply_all_filters
 )
-from datasets.manufactured.generate import generate_record, generate_dataset
 
 __all__ = [
     # Core functions
     'sample_u',
     'apply_operator',
-    'generate_record',
-    'generate_dataset',
     # Utilities
     'canonical_print',
     'canonical_hash',
