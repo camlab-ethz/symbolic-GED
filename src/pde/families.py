@@ -5,6 +5,7 @@ Defines 16 common PDE families with their properties and template functions
 
 from typing import Dict, Callable, Optional
 from dataclasses import dataclass
+from .normalize import fmt_coeff, canonicalize_operator_str
 
 
 @dataclass
@@ -39,47 +40,46 @@ def _minus_chain(lhs: str, terms: list[str]) -> str:
 
 def heat_template(dim: int, coeffs: Dict) -> str:
     """Heat equation: ∂u/∂t = k∇²u"""
-    k = coeffs["k"]
+    k = float(coeffs["k"])
+    k_str = fmt_coeff(k)
 
     lhs = "dt(u)"
     spatial_terms = []
 
     if dim >= 1:
-        spatial_terms.append(f"{k}*dxx(u)")
+        spatial_terms.append(f"{k_str}*dxx(u)")
     if dim >= 2:
-        spatial_terms.append(f"{k}*dyy(u)")
+        spatial_terms.append(f"{k_str}*dyy(u)")
     if dim >= 3:
-        spatial_terms.append(f"{k}*dzz(u)")
+        spatial_terms.append(f"{k_str}*dzz(u)")
 
-    if spatial_terms:
-        return f"{_minus_chain(lhs, spatial_terms)}"
-    else:
-        return f"{lhs}"
+    result = f"{_minus_chain(lhs, spatial_terms)}" if spatial_terms else f"{lhs}"
+    return canonicalize_operator_str(result)
 
 
 def wave_template(dim: int, coeffs: Dict) -> str:
     """Wave equation: ∂²u/∂t² = c²∇²u"""
-    c_sq = coeffs["c_sq"]
+    c_sq = float(coeffs["c_sq"])
+    c_sq_str = fmt_coeff(c_sq)
 
     lhs = "dtt(u)"
     spatial_terms = []
 
     if dim >= 1:
-        spatial_terms.append(f"{c_sq}*dxx(u)")
+        spatial_terms.append(f"{c_sq_str}*dxx(u)")
     if dim >= 2:
-        spatial_terms.append(f"{c_sq}*dyy(u)")
+        spatial_terms.append(f"{c_sq_str}*dyy(u)")
     if dim >= 3:
-        spatial_terms.append(f"{c_sq}*dzz(u)")
+        spatial_terms.append(f"{c_sq_str}*dzz(u)")
 
-    if spatial_terms:
-        return f"{_minus_chain(lhs, spatial_terms)}"
-    else:
-        return f"{lhs}"
+    result = f"{_minus_chain(lhs, spatial_terms)}" if spatial_terms else f"{lhs}"
+    return canonicalize_operator_str(result)
 
 
 def poisson_template(dim: int, coeffs: Dict) -> str:
     """Poisson equation: ∇²u = f"""
-    f = coeffs["f"]
+    f = float(coeffs["f"])
+    f_str = fmt_coeff(abs(f))
     terms = []
 
     if dim >= 1:
@@ -91,9 +91,10 @@ def poisson_template(dim: int, coeffs: Dict) -> str:
 
     result = " + ".join(terms)
     if f >= 0:
-        return f"{result} - {f}"
+        result = f"{result} - {f_str}"
     else:
-        return f"{result} + {abs(f)}"
+        result = f"{result} + {f_str}"
+    return canonicalize_operator_str(result)
 
 
 def advection_template(dim: int, coeffs: Dict) -> str:
@@ -102,31 +103,38 @@ def advection_template(dim: int, coeffs: Dict) -> str:
 
     if dim >= 1 and "v_x" in coeffs:
         v_x = float(coeffs["v_x"])
-        expr += f" + {v_x}*dx(u)" if v_x >= 0 else f" - {abs(v_x)}*dx(u)"
+        v_x_str = fmt_coeff(abs(v_x))
+        expr += f" + {v_x_str}*dx(u)" if v_x >= 0 else f" - {v_x_str}*dx(u)"
 
     if dim >= 2 and "v_y" in coeffs:
         v_y = float(coeffs["v_y"])
-        expr += f" + {v_y}*dy(u)" if v_y >= 0 else f" - {abs(v_y)}*dy(u)"
+        v_y_str = fmt_coeff(abs(v_y))
+        expr += f" + {v_y_str}*dy(u)" if v_y >= 0 else f" - {v_y_str}*dy(u)"
 
     if dim >= 3 and "v_z" in coeffs:
         v_z = float(coeffs["v_z"])
-        expr += f" + {v_z}*dz(u)" if v_z >= 0 else f" - {abs(v_z)}*dz(u)"
+        v_z_str = fmt_coeff(abs(v_z))
+        expr += f" + {v_z_str}*dz(u)" if v_z >= 0 else f" - {v_z_str}*dz(u)"
 
-    return expr
+    return canonicalize_operator_str(expr)
 
 
 def burgers_template(dim: int, coeffs: Dict) -> str:
     """Burgers equation: ∂u/∂t + u∂u/∂x = ν∂²u/∂x²"""
-    nu = coeffs["nu"]
-    return f"dt(u) + u*dx(u) - {nu}*dxx(u)"
+    nu = float(coeffs["nu"])
+    nu_str = fmt_coeff(nu)
+    result = f"dt(u) + u*dx(u) - {nu_str}*dxx(u)"
+    return canonicalize_operator_str(result)
 
 
 def kdv_template(dim: int, coeffs: Dict) -> str:
     """Korteweg-de Vries equation: ∂u/∂t + u∂u/∂x + δ∂³u/∂x³ = 0"""
     if dim != 1:
         raise ValueError("kdv is 1D-only in this benchmark (dim must be 1)")
-    delta = coeffs["delta"]
-    return f"dt(u) + u*dx(u) + {delta}*dxxx(u)"
+    delta = float(coeffs["delta"])
+    delta_str = fmt_coeff(delta)
+    result = f"dt(u) + u*dx(u) + {delta_str}*dxxx(u)"
+    return canonicalize_operator_str(result)
 
 
 def cubic_reaction_diffusion_template(dim: int, coeffs: Dict) -> str:
@@ -135,7 +143,8 @@ def cubic_reaction_diffusion_template(dim: int, coeffs: Dict) -> str:
     NOTE: This is NOT the (complex) Schrödinger equation (no i, no complex field).
     We keep it as a separate, clearly named family to avoid confusion/overlap.
     """
-    g = coeffs["g"]
+    g = float(coeffs["g"])
+    g_str = fmt_coeff(abs(g))
     terms = ["dt(u)", "dxx(u)"]
 
     if dim >= 2:
@@ -147,9 +156,10 @@ def cubic_reaction_diffusion_template(dim: int, coeffs: Dict) -> str:
     lap_part = _minus_chain("dt(u)", terms[1:])
 
     if g >= 0:
-        return f"{lap_part} + {g}*u**3"
+        result = f"{lap_part} + {g_str}*u^3"
     else:
-        return f"{lap_part} - {abs(g)}*u**3"
+        result = f"{lap_part} - {g_str}*u^3"
+    return canonicalize_operator_str(result)
 
 
 def reaction_diffusion_cubic_template(dim: int, coeffs: Dict) -> str:
@@ -159,18 +169,20 @@ def reaction_diffusion_cubic_template(dim: int, coeffs: Dict) -> str:
 
 def allen_cahn_template(dim: int, coeffs: Dict) -> str:
     """Allen-Cahn equation: ∂u/∂t = ε²∇²u + u - u³"""
-    eps_sq = coeffs["eps_sq"]
+    eps_sq = float(coeffs["eps_sq"])
+    eps_sq_str = fmt_coeff(eps_sq)
     terms = []
 
     if dim >= 1:
-        terms.append(f"{eps_sq}*dxx(u)")
+        terms.append(f"{eps_sq_str}*dxx(u)")
     if dim >= 2:
-        terms.append(f"{eps_sq}*dyy(u)")
+        terms.append(f"{eps_sq_str}*dyy(u)")
     if dim >= 3:
-        terms.append(f"{eps_sq}*dzz(u)")
+        terms.append(f"{eps_sq_str}*dzz(u)")
 
     lap_part = _minus_chain("dt(u)", terms)
-    return f"{lap_part} - u + u**3"
+    result = f"{lap_part} - u + u^3"
+    return canonicalize_operator_str(result)
 
 
 def cahn_hilliard_template(dim: int, coeffs: Dict) -> str:
@@ -178,37 +190,47 @@ def cahn_hilliard_template(dim: int, coeffs: Dict) -> str:
 
     PDE: u_t = -γ Δ^2 u + Δ(u^3 - u)
     Residual operator:
-      dt(u) + γ Δ^2 u + Δu - Δ(u**3)
+      dt(u) + γ Δ^2 u + Δu - Δ(u^3)
     """
-    gamma = coeffs["gamma"]
+    gamma = float(coeffs["gamma"])
+    gamma_str = fmt_coeff(gamma)
+    # Collapse 2*gamma to single coefficient
+    two_gamma = 2.0 * gamma
+    two_gamma_str = fmt_coeff(two_gamma)
 
     if dim == 1:
-        return f"dt(u) + {gamma}*dxxxx(u) + dxx(u) - dxx(u**3)"
-    if dim == 2:
+        result = f"dt(u) + {gamma_str}*dxxxx(u) + dxx(u) - dxx(u^3)"
+    elif dim == 2:
         # Δ^2 u in 2D: u_xxxx + 2 u_xxyy + u_yyyy
-        # IMPORTANT: keep operator-only string but avoid parentheses, so grammar tokenization stays simple.
-        return (
-            f"dt(u) + {gamma}*dxxxx(u) + {gamma}*dyyyy(u) + 2*{gamma}*dxxyy(u)"
-            f" + dxx(u) + dyy(u) - dxx(u**3) - dyy(u**3)"
+        # Collapse 2*gamma to single coefficient
+        result = (
+            f"dt(u) + {gamma_str}*dxxxx(u) + {gamma_str}*dyyyy(u) + {two_gamma_str}*dxxyy(u)"
+            f" + dxx(u) + dyy(u) - dxx(u^3) - dyy(u^3)"
         )
-    raise ValueError("cahn_hilliard currently supports dim=1 or dim=2 only")
+    else:
+        raise ValueError("cahn_hilliard currently supports dim=1 or dim=2 only")
+    
+    return canonicalize_operator_str(result)
 
 
 def fisher_kpp_template(dim: int, coeffs: Dict) -> str:
     """Fisher-KPP equation: ∂u/∂t = D∇²u + ru(1-u)"""
-    D = coeffs["D"]
-    r = coeffs["r"]
+    D = float(coeffs["D"])
+    r = float(coeffs["r"])
+    D_str = fmt_coeff(D)
+    r_str = fmt_coeff(r)
     terms = []
 
     if dim >= 1:
-        terms.append(f"{D}*dxx(u)")
+        terms.append(f"{D_str}*dxx(u)")
     if dim >= 2:
-        terms.append(f"{D}*dyy(u)")
+        terms.append(f"{D_str}*dyy(u)")
     if dim >= 3:
-        terms.append(f"{D}*dzz(u)")
+        terms.append(f"{D_str}*dzz(u)")
 
     lap_part = _minus_chain("dt(u)", terms)
-    return f"{lap_part} - {r}*u + {r}*u**2"
+    result = f"{lap_part} - {r_str}*u + {r_str}*u^2"
+    return canonicalize_operator_str(result)
 
 
 def kuramoto_sivashinsky_template(dim: int, coeffs: Dict) -> str:
@@ -217,33 +239,41 @@ def kuramoto_sivashinsky_template(dim: int, coeffs: Dict) -> str:
         raise ValueError(
             "kuramoto_sivashinsky is 1D-only in this benchmark (dim must be 1)"
         )
-    nu = coeffs["nu"]
-    gamma = coeffs["gamma"]
-    alpha = coeffs["alpha"]
+    nu = float(coeffs["nu"])
+    gamma = float(coeffs["gamma"])
+    alpha = float(coeffs["alpha"])
+    nu_str = fmt_coeff(nu)
+    gamma_str = fmt_coeff(gamma)
+    alpha_str = fmt_coeff(alpha)
     # Canonical KS uses u*u_x (not (u_x)^2) as the nonlinearity.
-    return f"dt(u) + {nu}*dxx(u) + {gamma}*dxxxx(u) + {alpha}*u*dx(u)"
+    result = f"dt(u) + {nu_str}*dxx(u) + {gamma_str}*dxxxx(u) + {alpha_str}*u*dx(u)"
+    return canonicalize_operator_str(result)
 
 
 def airy_template(dim: int, coeffs: Dict) -> str:
     """Airy equation (linear dispersive, 1D): u_t + α u_xxx = 0"""
     if dim != 1:
         raise ValueError("airy is 1D-only in this benchmark (dim must be 1)")
-    alpha = coeffs["alpha"]
-    return f"dt(u) + {alpha}*dxxx(u)"
+    alpha = float(coeffs["alpha"])
+    alpha_str = fmt_coeff(alpha)
+    result = f"dt(u) + {alpha_str}*dxxx(u)"
+    return canonicalize_operator_str(result)
 
 
 def telegraph_template(dim: int, coeffs: Dict) -> str:
     """Telegraph equation: ∂²u/∂t² + a∂u/∂t - b²∂²u/∂x² = 0"""
-    a = coeffs["a"]
-    b_sq = coeffs["b_sq"]
+    a = float(coeffs["a"])
+    b_sq = float(coeffs["b_sq"])
+    a_str = fmt_coeff(a)
+    b_sq_str = fmt_coeff(b_sq)
     # Multi-D telegraph uses the Laplacian, consistent with the other families.
-    terms = [f"{b_sq}*dxx(u)"]
+    terms = [f"{b_sq_str}*dxx(u)"]
     if dim >= 2:
-        terms.append(f"{b_sq}*dyy(u)")
+        terms.append(f"{b_sq_str}*dyy(u)")
     if dim >= 3:
-        terms.append(f"{b_sq}*dzz(u)")
-    lap_part = _minus_chain(f"dtt(u) + {a}*dt(u)", terms)
-    return f"{lap_part}"
+        terms.append(f"{b_sq_str}*dzz(u)")
+    lap_part = _minus_chain(f"dtt(u) + {a_str}*dt(u)", terms)
+    return canonicalize_operator_str(lap_part)
 
 
 def beam_plate_template(dim: int, coeffs: Dict) -> str:
@@ -252,50 +282,62 @@ def beam_plate_template(dim: int, coeffs: Dict) -> str:
     1D beam:  u_tt + κ u_xxxx = 0
     2D plate: u_tt + κ (u_xxxx + 2 u_xxyy + u_yyyy) = 0
     """
-    kappa = coeffs["kappa"]
+    kappa = float(coeffs["kappa"])
+    kappa_str = fmt_coeff(kappa)
+    # Collapse 2*kappa to single coefficient
+    two_kappa = 2.0 * kappa
+    two_kappa_str = fmt_coeff(two_kappa)
+    
     if dim == 1:
-        return f"dtt(u) + {kappa}*dxxxx(u)"
-    if dim == 2:
-        # Avoid parentheses for grammar tokenization compatibility.
-        return f"dtt(u) + {kappa}*dxxxx(u) + 2*{kappa}*dxxyy(u) + {kappa}*dyyyy(u)"
-    raise ValueError("beam_plate currently supports dim=1 or dim=2 only")
+        result = f"dtt(u) + {kappa_str}*dxxxx(u)"
+    elif dim == 2:
+        # Collapse 2*kappa to single coefficient
+        result = f"dtt(u) + {kappa_str}*dxxxx(u) + {two_kappa_str}*dxxyy(u) + {kappa_str}*dyyyy(u)"
+    else:
+        raise ValueError("beam_plate currently supports dim=1 or dim=2 only")
+    return canonicalize_operator_str(result)
 
 
 def biharmonic_template(dim: int, coeffs: Dict) -> str:
     """Biharmonic equation: ∇⁴u = f"""
-    f = coeffs["f"]
+    f = float(coeffs["f"])
+    f_str = fmt_coeff(abs(f))
 
     if dim == 1:
         if f >= 0:
-            return f"dxxxx(u) - {f}"
+            result = f"dxxxx(u) - {f_str}"
         else:
-            return f"dxxxx(u) + {abs(f)}"
+            result = f"dxxxx(u) + {f_str}"
     elif dim == 2:
         if f >= 0:
             # Δ^2 u in 2D: u_xxxx + 2 u_xxyy + u_yyyy
-            return f"dxxxx(u) + dyyyy(u) + 2*dxxyy(u) - {f}"
+            result = f"dxxxx(u) + dyyyy(u) + 2.000*dxxyy(u) - {f_str}"
         else:
-            return f"dxxxx(u) + dyyyy(u) + 2*dxxyy(u) + {abs(f)}"
+            result = f"dxxxx(u) + dyyyy(u) + 2.000*dxxyy(u) + {f_str}"
     else:
         if f >= 0:
-            return f"dxxxx(u) - {f}"
+            result = f"dxxxx(u) - {f_str}"
         else:
-            return f"dxxxx(u) + {abs(f)}"
+            result = f"dxxxx(u) + {f_str}"
+    return canonicalize_operator_str(result)
 
 
 def sine_gordon_template(dim: int, coeffs: Dict) -> str:
     """Sine-Gordon equation (true): u_tt - c^2 Δu + beta*sin(u) = 0"""
-    c_sq = coeffs["c_sq"]
-    beta = coeffs["beta"]
+    c_sq = float(coeffs["c_sq"])
+    beta = float(coeffs["beta"])
+    c_sq_str = fmt_coeff(c_sq)
+    beta_str = fmt_coeff(beta)
 
-    spatial_terms = [f"{c_sq}*dxx(u)"]
+    spatial_terms = [f"{c_sq_str}*dxx(u)"]
     if dim >= 2:
-        spatial_terms.append(f"{c_sq}*dyy(u)")
+        spatial_terms.append(f"{c_sq_str}*dyy(u)")
     if dim >= 3:
-        spatial_terms.append(f"{c_sq}*dzz(u)")
+        spatial_terms.append(f"{c_sq_str}*dzz(u)")
 
     lap_part = _minus_chain("dtt(u)", spatial_terms)
-    return f"{lap_part} + {beta}*sin(u)"
+    result = f"{lap_part} + {beta_str}*sin(u)"
+    return canonicalize_operator_str(result)
 
 
 # ============================================================================

@@ -76,8 +76,14 @@ add('PROD', ['FACT', 'PROD_T'])
 add('PROD_T', ['*', 'FACT', 'PROD_T'])
 add('PROD_T', [])  # epsilon
 
+# IMPORTANT: Order matters! Try FACT -> ATOM '^' POW first (more specific)
+# before FACT -> ATOM (more general), so u^2 and u^3 are parsed correctly
+add('FACT', ['ATOM', '^', 'POW'])
 add('FACT', ['ATOM'])
-add('FACT', ['ATOM', '^', 'NUM'])
+
+# POW: exponents restricted to 2 or 3 (not digit-by-digit, single tokens)
+add('POW', ['2'])
+add('POW', ['3'])
 
 # ATOM alternatives
 add('ATOM', ['dt', '(', 'u', ')'])
@@ -111,9 +117,9 @@ add('ATOM', ['u', '*', 'dx', '(', 'u', ')'])
 add('ATOM', ['u', '*', 'dy', '(', 'u', ')'])
 add('ATOM', ['u', '*', 'dz', '(', 'u', ')'])
 add('ATOM', ['sin', '(', 'u', ')'])  # sin(u)
-add('ATOM', ['u', '^', '3'])  # u^3 before u^2
-add('ATOM', ['u', '^', '2'])  # u^2 before u
-add('ATOM', ['u'])  # plain u LAST
+# NOTE: u^2 and u^3 are now handled via FACT -> ATOM '^' POW, NOT as ATOM productions
+# This removes ambiguity - u^2 and u^3 can only be derived one way!
+add('ATOM', ['u'])  # plain u
 
 # numeric constant as ATOM (we fold NUM separately)
 add('ATOM', ['NUM'])
@@ -196,13 +202,26 @@ def tokenize_canonical(pde: str) -> List[str]:
     pde = _normalize_power_shared(pde)
     parts = re.findall(pattern, pde)
     
-    for i, part in enumerate(parts):
+    i = 0
+    while i < len(parts):
+        part = parts[i]
+        
+        # Skip whitespace
         if part.isspace():
+            i += 1
             continue
-        elif re.match(r'\d+(?:\.\d+)?$', part):
-            # Check if previous token is '^' - if so, this is a power exponent, keep as literal
+        
+        # Check if this is a number
+        if re.match(r'\d+(?:\.\d+)?$', part):
+            # Check if previous token is '^' - if so, this is a power exponent
             if tokens and tokens[-1] == '^':
-                tokens.append(part)  # Keep '2' or '3' as literal token
+                # Exponent: must be '2' or '3', keep as single token (not split)
+                if part in ['2', '3']:
+                    tokens.append(part)
+                else:
+                    # Invalid exponent (not 2 or 3) - this will cause parse to fail
+                    # But we still tokenize it as a single token for error reporting
+                    tokens.append(part)
             else:
                 # Regular coefficient: split into individual digits/decimal point (no sign prefix)
                 for char in part:
@@ -210,6 +229,8 @@ def tokenize_canonical(pde: str) -> List[str]:
         else:
             # All other tokens (derivatives, operators, parens, etc.)
             tokens.append(part)
+        
+        i += 1
     
     return tokens
 
